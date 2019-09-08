@@ -1,0 +1,12 @@
+<div class="scroll-panel">
+  <table id="users">
+    {% for user in (users if current_user.is_authenticated else users[:10]) %}
+    <tr class="profile">
+      <td class="nickname"><a href="{{ url_for('main.user', id=user.id) }}">{{ user.nickname }}</a></td>
+      <td class="email">{{ user.email}}</td>
+      <td class="posts">博客{{ user.posts.count() }}</td>
+      <td class="imageposts">图像日志{{ user.imageposts.count() }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>

@@ -1,0 +1,17 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+<h1 id="post-title">好友管理</h1>
+<div class="scroll-panel">
+  <table id="friend-table">
+    {% for friend in current_user.get_friends() %}
+    <tr>
+      <td><a href="{{ url_for('main.user', id=friend.id) }}">{{ friend.nickname }}</a></td>
+      <td>{{"在线" if friend.state else "离线" }}</td>
+      <td><a href="{{ url_for('main.delete_friend', id=friend.id) }}">删除</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

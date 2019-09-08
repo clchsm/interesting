@@ -1,0 +1,32 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+<div class="profile">
+  <h1>{{ user.nickname }}</h1>
+  {% if current_user.is_requested_by(user) %}
+  <p>验证消息：{{ current_user.requested.filter_by(from_id=user.id).first().validation }}</p>
+  {{ wtf.confirm_form(form) }}
+  {% else%}
+  <table id="profile">
+    <tr>
+      <td>姓名：</td>
+      <td>{{ user.name }}</td>
+    </tr>
+    <tr>
+      <td>性别：</td>
+      <td>{{ user.gender }}</td>
+    </tr>
+    <tr>
+      <td>邮箱：</td>
+      <td>{{ user.email }}</td>
+    </tr>
+  </table>
+  {{ wtf.request_form(form) }}
+  {% endif %}
+</div>
+
+<h1>{{ user.nickname }}的博客</h1>
+{% include "./_posts_list.html" %}
+
+{% endblock %}

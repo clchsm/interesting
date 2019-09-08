@@ -1,0 +1,148 @@
+from datetime import datetime
+
+from app import db
+
+
+class Friendship(db.Model):
+    __tablename__ = 'friendships'
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    nickname = db.Column(db.String(64), index=True, unique=True, nullable=False)
+    name = db.Column(db.String(64), index=True, nullable=False)
+    gender = db.Column(db.String(32), nullable=False)
+    ID_num = db.Column(db.String(64), nullable=False, unique=True)
+    email = db.Column(db.String(64), unique=True)
+    password = db.Column(db.String(64), nullable=False)
+    password_hash = db.Column(db.String(128))
+    posts = db.relationship('Post', backref='author', lazy=True)
+    comments = db.relationship('Comment', backref='author', lazy=True)
+    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    state = db.Column(db.Boolean, default=False)
+    session_id = db.Column(db.String(128), default=None)
+    follower_of=db.relationship('Friendship',
+                                foreign_keys=[Friendship.follower_id],
+                                backref=db.backref('follower', lazy='joined'),
+                                lazy='dynamic',
+                                cascade='all, delete-orphan')
+    followed_by=db.relationship('Friendship',
+                                foreign_keys=[Friendship.followed_id],
+                                backref=db.backref('followed', lazy='joined'),
+                                lazy='dynamic',
+                                cascade='all, delete-orphan')
+    friends = db.Column(db.Text)
+    
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def follow(self, user):
+        if not self.is_following(user):
+            f = Friendship(follower=self, followed=user)
+            db.session.add(f)
+
+    def unfollow(self, user):
+        f = self.follower_offilter_by(followed_id=user.id).first()
+        if f:
+            db.session.delete(f)
+
+    def is_following(self, user):
+        if user.id is None:
+            return False
+        return self.follower_of.filter_by(followed_id=user.id).first() is not None
+
+    def is_followed_by(self, user):
+        if user.id is None:
+            return False
+        return self.followed_by.filter_by(follower_id=user.id).first() is not None
+
+    def be_friend(self, user):
+        if user.id is not None and self.is_following(user) and self.is_followed_by(user) and not self.is_friend(user):
+            if self.friends is None:
+                self.friends=''
+            if user.friends is None:
+                user.friends=''
+            self.friends = self.friends+' '+str(user.id)+' '
+            user.friends = user.friends+' '+str(self.id)+' '
+            db.session.add(self)
+            db.session.add(user)
+            return True
+        return False
+
+    def delete_friend(self, user):
+        if user.id is not None and self.if_friend(user):
+            str_user = ' '+str(user.id) + ' '
+            str_self = ' ' + str(self.id) + ' '
+            self.friends.replace(str_user, '')
+            self.unfollow(user)
+            user.friends.replace(str_self, '')
+            db.session.add(self)
+            db.session.add(user)
+            return True
+        return False
+
+    def is_friend(self, user):
+        if user.id is not None and self.friends is not None and user.friends is not None:
+            str_user = ' '+str(user.id) + ' '
+            str_self = ' ' + str(self.id) + ' '
+            if str_user in self.friends and str_self in user.friends:
+                return True
+            else:
+                return False
+        return False
+
+    def get_friends(self):
+        if self.friends:
+            for str_friend in self.friends.strip().split('  '):
+                friend = User.query.filter_by(id=int(str_friend)).first()
+                if friend:
+                    yield friend
+    
+class Post(db.Model):
+    __tablename__ = 'posts'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(64), nullable=False)
+    body = db.Column(db.Text)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    comments = db.relationship('Comment', backref='post', lazy=True)
+    
+    
+class Comment(db.Model):
+    __tablename__ = 'comments'
+    id = db.Column(db.Integer, primary_key=True)
+    body=db.Column(db.Text)
+    state = db.Column(db.Boolean)
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+
+
+class Unshow(db.Model):
+    __tablename__ = 'unshows'
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.Text)
+    sender = db.Column(db.String(64), index=True, nullable=False)
+    receiver = db.Column(db.String(64), index=True, nullable=False)
+    time = db.Column(db.String(64), index=True)
+
+
+class Received(db.Model):
+    __tablename__ = 'receiveds'
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.Text)
+    sender = db.Column(db.String(64), index=True, nullable=False)
+    receiver = db.Column(db.String(64), index=True, nullable=False)
+    time = db.Column(db.String(64), index=True)

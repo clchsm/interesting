@@ -1,0 +1,47 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block self_script %}
+{{ super() }}
+<script>
+  window.onload = function() {
+  if (document.cookie.search(" posts=friends") != -1 )
+  {
+  document.getElementById('posts-friends').className="active";
+  document.getElementById('posts-all').className="";}
+  else 
+  {
+  document.getElementById('posts-all').className="active";
+  document.getElementById('posts-friends').className="";}
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<h1>搜索结果</h1>
+<nav id="select-bar">
+  <ul id="selections">
+    <li id="posts"><span>
+	{% if catalog == 'imagepost'%}
+	图像日志
+	{% elif catalog == 'user'%}
+	用户
+	{% else %}
+	博客
+	{% endif %}
+    </span></li>
+  </ul>
+</nav>
+{% if catalog == 'imagepost' %}
+{% include "_imageposts_list.html" %}
+{% elif catalog== 'user' %}
+{% include "_users_list.html" %}
+{% else %}
+{% include "./_posts_list.html" %}
+{% endif %}
+<div class="pagination">
+  {{ macros.pagination_widget(pagination, 'main.index') }}
+</div>
+{% endblock %}
+

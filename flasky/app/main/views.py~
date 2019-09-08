@@ -1,0 +1,985 @@
+import os, re
+from datetime import datetime, timedelta
+from flask import render_template, url_for, redirect, flash, request, current_app, make_response, send_from_directory, session
+from flask_login import UserMixin, LoginManager, AnonymousUserMixin, login_required, login_user, current_user, logout_user, fresh_login_required
+from flask_socketio import SocketIO, emit, join_room, leave_room
+from sqlalchemy import and_, or_
+import paginate
+from flask_dropzone import random_filename
+from sqlalchemy.exc import DataError
+from pathlib import Path
+import flask_whooshalchemyplus
+
+from threading import Lock
+
+#from gevent.wsgi import WSGIServer
+
+from flask import abort
+from flask_login import current_user
+
+from . import main
+from .forms import *
+from app import socketio, db
+from app.models import *
+from app.decorators import permission_required, admin_required
+from app.utils import resize_image
+from app.async import send_mail, offline_store_room_message, store_attentions
+
+@main.route('/all-posts', methods=['GET', 'POST'])
+def all_posts():
+    resp = make_response(redirect(url_for('.index')))
+    resp.set_cookie('posts', 'all', max_age = 30*60*60*24)
+    return resp
+
+
+@main.route('/friend-posts', methods=['GET', 'POST'])
+def friend_posts():
+    resp = make_response(redirect(url_for('.index')))
+    resp.set_cookie('posts', 'friends', max_age = 30*60*60*24)
+    return resp
+
+
+@main.route('/', methods = ['POST', 'GET'])
+def index():
+    page = request.args.get('page', 1, type=int)
+    query = Post.query
+    if current_user.is_authenticated and request.cookies.get('posts') == 'friends':
+        query = Post.query.join(Friendship, Friendship.friend_id== Post.author_id).filter(Friendship.user_id==current_user.id)
+    pagination = query.order_by(Post.time_stamp.desc()).paginate(page, per_page=current_app.config['FLASKY_POST_PER_PAGE'], error_out=False)
+    posts = pagination.items
+    return render_template('index.html', posts=posts, pagination=pagination)
+
+
+@main.route('/send_email/<id>', methods=['GET'])
+@login_required
+def send_email(id):
+    user = User.query.filter_by(id=id).first()
+    token = user.generate_confirmation_token()
+    send_mail(user.email, '确认账户', 'auth/confirm', user=user, token=token)
+    return redirect(url_for('main.index'))
+
+
+@main.route('/search', methods=['GET', 'POST'])
+def search():
+    keyword = request.args.get('key')
+    catalog = request.args.get('catalog')
+    page = request.args.get('page', 1, int)
+    posts = None
+    imageposts = None
+    users = None
+    pagination = None
+    if catalog == 'post':
+        pagination = Post.query.whooshee_search(keyword).paginate(page, current_app.config['FLASKY_POST_PER_PAGE'], error_out=False)
+        posts = pagination.items
+    elif catalog == 'imagepost':
+        pagination = ImagePost.query.whooshee_search(keyword).paginate(page, current_app.config['FLASKY_IMAGEPOST_PER_PAGE'], error_out=False)
+        imageposts = pagination.items
+    elif catalog =='user':
+        pagination = User.query.whooshee_search(keyword).paginate(page, current_app.config['FLASKY_USER_PER_PAGE'], error_out=False)
+        users = pagination.items
+    return render_template('search.html', catalog=catalog, posts=posts, imageposts=imageposts, users=users, pagination=pagination)
+
+
+@main.route('/user-posts/<id>')
+def user_posts(id):
+    resp = make_response(redirect(url_for('main.user', id=id)))
+    resp.set_cookie('user', 'posts', max_age = 30*60*60*24)
+    return resp
+
+
+@main.route('/user-photos/<id>')
+def user_imageposts(id):
+    resp = make_response(redirect(url_for('main.user', id=id)))
+    resp.set_cookie('user', 'imageposts', max_age = 30*60*60*24)
+    return resp
+
+
+@main.route('/user/<id>', methods=['POST', 'GET'])
+@login_required
+def user(id):
+    user = User.query.filter_by(id=id).first()
+    if user is not None:
+        if not current_user.is_friend(user) and current_user != user:
+            if request.cookies.get('user')=='imageposts':
+                imageposts = user.imageposts.limit(5)
+                posts = None
+            else:
+                imageposts = None
+                posts = user.posts.limit(10)
+            return render_template('user.html', user=user, posts=posts, imageposts=imageposts)
+        page=request.args.get('page', 1, type=int)
+        if request.cookies.get('user')=='imageposts':
+            pagination = user.imageposts.order_by(ImagePost.time_stamp.desc()).paginate(page, per_page=current_app.config['FLASKY_IMAGEPOST_PER_PAGE'], error_out=False)
+            imageposts=pagination.items
+            posts=None
+        else:
+            pagination = user.posts.order_by(Post.time_stamp.desc()).paginate(page, per_page=current_app.config['FLASKY_POST_PER_PAGE'], error_out=False)
+            posts=pagination.items
+            imageposts=None
+        return render_template('user.html', user=user, posts=posts, imageposts=imageposts, pagination=pagination)
+    return redirect(url_for('.index'))
+
+
+@main.route('/add_friend/<id>', methods=['GET','POST'])
+@login_required
+def add_friend(id):
+    user = User.query.filter_by(id=id).first()
+    if user is None or current_user == user:
+        flash('申请用户有误！')
+        next_url = request.referrer
+        if next_url is None or not next_url.startswith('/'):
+            next_url = url_for('main.index')
+        return redirect(next_url)
+    elif current_user.request_sent(user) or current_user.is_friend(user):
+        flash('您无需重复申请好友。')
+        return redirect(url_for('main.user', id=user.id))
+    else:
+        if current_user.is_requested_by(user):
+            form = ConfirmForm()
+            if form.validate_on_submit():
+                if form.submit_yes.data:
+                    current_user.add_friend(user)
+                    db.session.commit()
+                    attention_body = current_user.nickname+"同意了您的好友请求。"
+                    attention_url = url_for('main.webchat', nickname=current_user.nickname)
+                    store_attentions([user], attention_body, attention_url)
+                elif form.submit_no.data:
+                    r = user.requests.filter_by(to_id=current_user.id).first()
+                    db.session.delete(r)
+                    db.session.commit()
+                next_url=request.referrer
+                if next_url is None or not next_url.startswith('/'):
+                    next_url = url_for('main.index')
+                return redirect(next_url)
+            return render_template('friendrequest.html', user=user, form=form)
+        else:
+            form = RequestForm()
+            form.message="你好，我是"+current_user.nickname+'。'
+            if form.validate_on_submit():
+                f = FriendRequest(from_id=current_user.id,
+                                  to_id=user.id,
+                                  validation=form.message)
+                db.session.add(f)
+                db.session.commit()
+                attention_body = current_user.nickname+"请求添加您为好友。"
+                attention_url = url_for('main.add_friend', id=current_user.id)
+                store_attentions([user], attention_body, attention_url)
+                next_url=request.referrer
+                if next_url is None or not next_url.startswith('/'):
+                    next_url = url_for('main.index')
+                return redirect(next_url)
+            return render_template('friendrequest.html', user=user, form=form)
+
+
+@main.route('/manage-friends', methods=['GET'])
+@login_required
+def manage_friends():
+    return render_template('manage_friends.html')
+
+
+@main.route('/delete-friend/<id>')
+@login_required
+def delete_friend(id):
+    friend = User.query.filter_by(id=id).first()
+    if friend is not None and current_user.is_friend(friend):
+        current_user.delete_friend(friend)
+        db.session.commit()
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.manage_friends')
+        return redirect(next)
+    return render_template('manage_friends.html')
+
+
+@main.route('/post/<post_id>', methods=['GET', 'POST'])
+@login_required
+def post(post_id):
+    post = Post.query.filter_by(id=post_id).first()
+    if post is None:
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('.index')  
+        flash('不存在此文章.')
+        return redirect(next)
+    return render_template('post.html', post=post, form=None)
+
+
+@main.route('/edit-post', methods=['GET', 'POST'])
+@login_required
+def edit_post():
+    postform = PostForm()
+    post_id=request.args.get('post_id')
+    if post_id is not None:
+        post = Post.query.filter_by(id=post_id).first()
+        if post is None:
+            flash('无此文章,您可以创建新内容.')
+            return redirect(url_for('.edit_post'))
+    else:
+        post=Post()
+    if postform.validate_on_submit():
+        post.title = postform.title.data
+        post.body = postform.body.data
+        post.author = current_user._get_current_object()
+        post.time_stamp = datetime.utcnow()
+        db.session.add(post)
+        try:
+            db.session.commit()
+            attention_body = "您的好友"+current_user.nickname+"更新了博客。"
+            attention_url = url_for('main.post', post_id=post.id, _external=True)
+            store_attentions(post.author.get_friends(), attention_body, attention_url)
+            return redirect(url_for('main.post', post_id=post.id))
+        except DataError as e:
+            db.session.rollback()
+    postform.title.data = post.title
+    postform.body.data=post.body
+    return render_template('edit_post.html', form=postform)
+
+
+@main.route('/attentions/')
+@login_required
+def attentions():
+    return render_template('attentions.html')
+
+
+@main.route('/check-attention/<id>')
+@login_required
+def check_attention(id):
+    attention = Attention.query.filter_by(id=id).first()
+    if attention is None or current_user != attention.receiver:
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.index')
+        return redirect(next)
+    url = attention.url
+    db.session.delete(attention)
+    db.session.commit()
+    return redirect(url)
+
+
+@main.route('/clear-attentions/<id>')
+@login_required
+def clear_attentions(id):
+    user = User.query.filter_by(id=id).first()
+    if user != current_user:
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.index')
+        return redirect(next)
+    for attention in user.attentions:
+        db.session.delete(attention)
+    db.session.commit()
+    next = request.referrer
+    if next is None or not next.startswith('/'):
+        next = url_for('main.index')
+    return redirect(next)
+
+
+@main.route('/clear-attention/<id>')
+@login_required
+def clear_attention(id):
+    attention = Attention.query.filter_by(id=id).first()
+    if attention is None or current_user != attention.receiver:
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.index')
+        return redirect(next)
+    db.session.delete(attention)
+    db.session.commit()
+    next = request.referrer
+    if next is None or not next.startswith('/'):
+        next = url_for('main.attentions', id=current_user.id)
+    return redirect(next)
+
+
+@main.route('/comment-post/<post_id>', methods=['GET', 'POST'])
+@login_required
+def comment(post_id):
+    post = Post.query.filter_by(id=post_id).first()
+    if post is None:
+        flash('无此文章')
+        return redirect(url_for('.index'))
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Comment(body=form.body.data,
+                          post_id=post.id,
+                          state=True,
+                          author_id=current_user.id)
+        db.session.add(comment)
+        db.session.commit()
+        attention_body = current_user.nickname+"评论了您的博客“"+post.title+"”。"
+        attention_url = url_for('main.post', post_id=post.id, _external=True)
+        store_attentions([post.author], attention_body, attention_url)
+        return redirect(url_for('.post', post_id=post.id))
+    return render_template('post.html', post=post, form=form)
+        
+
+@main.route('/reply-comment/<id>', methods=['GET', 'POST'])
+@login_required
+def reply(id):
+    comment = Comment.query.filter_by(id=id).first()
+    if comment is None or not comment.state:
+        flash('此评论不存在或已被屏蔽。')
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.post', id=comment.post.id)
+        return redirect(next)
+    reply_to_id = request.args.get('reply_to_id')
+    user = User.query.filter_by(id=int(reply_to_id)).first()
+    if user is None:
+        flash('查无此人。')
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.post', id=comment.post.id)
+        return redirect(next)
+    form = CommentForm()
+    if form.validate_on_submit():
+        reply = Reply(body = form.body.data,
+                      comment_id = comment.id,
+                      reply_to_id = user.id,
+                      replyer = current_user.nickname)
+        db.session.add(reply)
+        db.session.commit()
+        attention_body = current_user.nickname+"在文章“"+comment.post.title+"”中回复了您的评论。"
+        attention_url = url_for('main.reply', id=comment.id, reply_to_id=user.id, _external=True)
+        store_attentions([user], attention_body, attention_url)
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.post', post_id=comment.post.id)
+        return redirect(next)
+    return render_template('reply_comment.html', reply_to=user, comment=comment, post = comment.post, form=form)
+
+
+@main.route('/delete-post/<post_id>', methods=['GET','POST'])
+@login_required
+def delete_post(post_id):
+    post = Post.query.filter_by(id=post_id).first()
+    if post is None:
+        flash("不存在此文章！")
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('.index')
+        return redirect(next)
+    if current_user != post.author:
+        flash('您无权限删除此博客！')
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('.index')
+        return redirect(next)
+    form = ConfirmForm()
+    if form.validate_on_submit():
+        if form.submit_yes.data:
+            if current_user.is_authenticated and current_user == post.author:
+                db.session.delete(post)
+                db.session.commit()
+                return redirect(url_for('.user', id=current_user.id))
+        elif form.submit_no.data:
+            return redirect(url_for('.post', post_id=post.id))        
+    return render_template('post.html', post=post, form=form)
+
+
+@main.route('/delete-comment/<comment_id>', methods=['GET','POST'])
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.filter_by(id=comment_id).first()
+    post = Post.query.filter_by(id=comment.post_id).first()
+    if comment is not None:
+        if current_user.is_authenticated and current_user == comment.author:
+            db.session.delete(comment)
+            db.session.commit()
+    else:
+        flash('无此评论。')
+    return redirect(url_for('.post', post_id=post.id))
+
+
+@main.route('/state-reply/<id>', methods=['GET', 'POST'])
+@login_required
+def state_reply(id):
+    reply = Reply.query.filter_by(id=id).first()
+    if reply is not None:
+        if current_user.is_authenticated and current_user.is_administrator():
+            reply.state = not reply.state
+            db.session.add(reply)
+            db.session.commit()
+    else:
+        flash('无此回复。')
+    next = request.referrer
+    if next is None or not next.startswith('/'):
+        next = url_for('.post', post_id=reply.comment.post.id)
+    return redirect(next)
+
+
+@main.route('/upload', methods=['GET', 'POST'])
+@login_required
+def upload():
+    if request.method == 'POST':
+        description = request.cookies.get('description')
+        imagepost = ImagePost(author_id = current_user.id,
+                              content=description)
+        db.session.add(imagepost)
+        db.session.commit()
+        for key, f in request.files.items():
+            if key.startswith('file'):
+                filename = random_filename(f.filename)
+                upload_path = os.path.join(current_app.config['APP_UPLOAD_PATH'])+'/'+str(current_user.id)
+                if not os.path.exists(upload_path):
+                    os.mkdir(upload_path)
+                f.save(os.path.join(upload_path, filename))
+                filename_s = resize_image(f, filename, 200)
+                filename_m = resize_image(f, filename, 800)
+                photo = Photo(filename = filename,
+                              filename_s = filename_s,
+                              filename_m = filename_m,
+                              imagepost_id = imagepost.id,
+                              author_id = current_user.id)
+                db.session.add(photo)
+        db.session.commit()
+        attention_body = "您的好友"+current_user.nickname+"发布了图像日志。"
+        attention_url = url_for('main.show_imagepost', id=imagepost.id, _external=True)
+        store_attentions(imagepost.author.get_friends(), attention_body, attention_url)
+    return render_template('upload.html')
+
+
+@main.route('/complated')
+@login_required
+def complated():
+    resp = make_response(redirect(url_for('main.user', id=current_user.id)))
+    resp.delete_cookie('description')
+    return resp
+
+
+@main.route('/filepath/<path:id>')
+def get_image(id):
+    size = request.args.get('size', 'norm', str)
+    photo = Photo.query.filter_by(id=id).first()
+    filename = photo.filename
+    if size == 'small':
+        filename = photo.filename_s
+    elif size == 'medium':
+        filename = photo.filename_m
+    return send_from_directory(current_app.config['APP_UPLOAD_PATH']+'/'+str(photo.author_id), filename=filename)
+
+
+@main.route('/all-imageposts')
+def all_imageposts():
+    resp = make_response(redirect(url_for('.show_imageposts')))
+    resp.set_cookie('images', 'all', max_age = 30*60*60*24)
+    return resp
+
+
+@main.route('/friend-imageposts')
+def friend_imageposts():
+    resp = make_response(redirect(url_for('.show_imageposts')))
+    resp.set_cookie('images', 'friends', max_age = 30*60*60*24)
+    return resp
+
+
+@main.route('/collection-imageposts')
+def collection_imageposts():
+    resp = make_response(redirect(url_for('.show_imageposts')))
+    resp.set_cookie('images', 'collections', max_age = 30*60*60*24)
+    return resp
+
+
+
+@main.route('/show-imageposts')
+@login_required
+def show_imageposts():
+    page = request.args.get('page', 1, int)
+    query = ImagePost.query
+    if current_user.is_authenticated:
+        if request.cookies.get('images')=='friends':
+            query = ImagePost.query.join(Friendship, ImagePost.author_id == Friendship.friend_id).filter(Friendship.user_id == current_user.id)
+        elif request.cookies.get('images')=='collections':
+            query = current_user.collections
+    pagination = query.order_by(ImagePost.time_stamp.desc()).paginate(page, current_app.config['FLASKY_IMAGEPOST_PER_PAGE'], error_out=False)
+    imageposts = pagination.items
+    return render_template('imageposts.html', pagination=pagination, imageposts=imageposts)
+
+
+@main.route('/show-imagepost/<id>')
+@login_required
+def show_imagepost(id):
+    imagepost = ImagePost.query.filter_by(id=id).first()
+    if imagepost is None:
+        flash('无此日志')
+        next = request.referrer
+        if next is not None or not next.startswith('/'):
+            next = url_for('main.index')
+        return redirect(next)
+    next = request.referrer
+    return render_template('imagepost.html', imagepost=imagepost, form=None)
+
+
+@main.route('/collect-imagepost/<id>')
+@login_required
+def collect(id):
+    imagepost = ImagePost.query.filter_by(id=id).first()
+    if imagepost is None or imagepost.author == current_user:
+        flash('无法收藏。')
+        next = request.referrer
+        if next is not None or not next.startswith('/'):
+            next = url_for('main.index')
+        return redirect(next)
+    current_user.collections.append(imagepost)
+    db.session.commit()
+    return redirect(url_for('main.show_imagepost', id=id))
+
+
+@main.route('/view-imagepost/<id>', methods=['GET', 'POST'])
+@login_required
+def view(id):
+    imagepost=ImagePost.query.filter_by(id=id).first()
+    if imagepost is None or not (current_user.is_friend(imagepost.author) or current_user == imagepost.author):
+        flash('不能留言。')
+        next = request.referrer
+        if next is not None or not next.startswith('/'):
+            next = url_for('main.index')
+        return redirect(next)
+    form = ViewForm()
+    reply_to = (request.args.get('reply_to') if request.args.get('reply_to') is not None else None)
+    if form.validate_on_submit():
+        view = View(author_id = current_user.id,
+                    imagepost_id = imagepost.id,
+                    view = (form.view.data if reply_to is None else "回复"+reply_to+":"+form.view.data))
+        db.session.add(view)
+        db.session.commit()
+        attention_body = "您有新的留言回复。"
+        attention_url = url_for('main.show_imagepost', id=imagepost.id)
+        reply_to = ([imagepost.author] if current_user != imagepost.author else [])
+        for view in imagepost.views.all():
+            if view.author != current_user:
+                reply_to.append(view.author)
+        store_attentions(reply_to, attention_body, attention_url)
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.show_imagepost', id=imagepost.id)
+        return redirect(next)
+    return render_template('imagepost.html', imagepost=imagepost, form=form)
+
+
+@main.route('/delete-imagepost/<id>')
+@login_required
+def delete_imagepost(id):
+    imagepost = ImagePost.query.filter_by(id=id).first()
+    if imagepost is None or current_user.id != imagepost.author_id:
+        flash("无法删除！")
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.index')
+        return redirect(next)
+    db.session.delete(imagepost)
+    db.session.commit()
+    resp = make_response(redirect(url_for('main.user', id=imagepost.author_id)))
+    resp.set_cookie('user', 'imageposts')
+    return resp
+
+
+@main.route('/show-photo/<id>')
+@login_required
+def show_photo(id):
+    photo = Photo.query.filter_by(id=id).first()
+    next = request.referrer
+    if photo is None:
+        flash('无此图片')
+        if next is None or not next.startswith('/'):
+            next = url_for('main.index')
+        return redirect(next)
+    if 'user' in next:
+        user_id = next.split('/')[-1]
+        session['photos_of'] = 'user/'+user_id
+    elif '/show-imageposts' in next:
+        session['photos_of'] = request.cookies.get('images')
+    elif ('/show-imagepost/' or '/view-imagepost/') in next:
+        imagepost_id = next.split('/')[-1]
+        session['photos_of'] = 'imagepost/'+imagepost_id
+    return render_template('medium.html', photo=photo)
+
+
+@main.route('/prev-photo/<id>')
+@login_required
+def prev_photo(id):
+    query = Photo.query
+    if session['photos_of']:
+        if session['photos_of']=='friends':
+            query = Photo.query.join(Friendship, Photo.author_id == Friendship.friend_id).filter(Friendship.user_id == current_user.id)
+        elif 'user' in session['photos_of']:
+            user_id = int(session['photos_of'].split('/')[-1])
+            query = Photo.query.filter(Photo.author_id==user_id)
+        elif 'imagepost' in session['photos_of']:
+            imagepost_id = int(session['photos_of'].split('/')[-1])
+            query = Photo.query.filter(Photo.imagepost_id==imagepost_id)
+    photo = query.filter(Photo.id == id).first()
+    if photo is None:
+        flash('无此照片')
+    photo_p = query.filter(Photo.id<photo.id).order_by(Photo.id.desc()).first()
+    if photo_p is None:
+        photo_p = query.filter(Photo.id>photo.id).order_by(Photo.id.desc()).first()
+        if photo_p is None:
+            photo_p = photo
+    return redirect(url_for('main.show_photo', id=photo_p.id))
+
+
+@main.route('/next-photo/<id>')
+@login_required
+def next_photo(id):
+    query = Photo.query
+    if session['photos_of']:
+        if session['photos_of']=='friends':
+            query = Photo.query.join(Friendship, Photo.author_id == Friendship.friend_id).filter(Friendship.user_id == current_user.id)
+        elif 'user' in session['photos_of']:
+            user_id = int(session['photos_of'].split('/')[-1])
+            query = Photo.query.filter(Photo.author_id==user_id)
+        elif 'imagepost' in session['photos_of']:
+            imagepost_id = int(session['photos_of'].split('/')[-1])
+            query = Photo.query.filter(Photo.imagepost_id==imagepost_id)
+    photo = query.filter(Photo.id == id).first()
+    if photo is None:
+        flash('无此照片')
+    photo_n = query.filter(Photo.id>photo.id).order_by(Photo.id).first()
+    if photo_n is None:
+        photo_n = query.filter(Photo.id<photo.id).order_by(Photo.id).first()
+        if photo_n is None:
+            photo_n = photo
+    return redirect(url_for('main.show_photo', id=photo_n.id))
+
+
+@main.route('/webchat/<nickname>', methods=['POST','GET'])
+@login_required
+def webchat(nickname):
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    user = User.query.filter_by(nickname=nickname).first()
+    if user is None or user == current_user or not current_user.is_friend(user) :
+        flash('请确认对方账号，或确认有无此朋友！')
+        return redirect(url_for('main.index'))
+    toshows = Message.query.filter(and_(or_(and_(Message.sender_id==user.id, Message.receiver_id==current_user.id), and_(Message.sender_id==current_user.id, Message.receiver_id==user.id)), Message.room_id==None)).order_by(Message.time_stamp).limit(500)
+    if len(toshows):
+        for toshow in toshows:
+            if toshow.state == 'unshow':
+                toshow.state = 'received'
+                db.session.add(toshow)
+        db.session.commit()
+    else:
+        toshows = None
+    return render_template('webchat.html', user=user, toshows=toshows)
+
+
+@main.route('/create-room', methods=['GET', 'POST'])
+@login_required
+def create_room():
+    form = RoomForm()
+    form.friends.choices = [(friend.id, friend.nickname) for friend in current_user.get_friends()]
+    if form.validate_on_submit():
+        room = Room(name = form.name.data,
+                    description = form.description.data,
+                    creater_id = current_user.id)
+        db.session.add(room)
+        db.session.commit()
+        current_user.rooms.append(room)
+        db.session.add(current_user)
+        for sub in form.friends:
+            friend = User.query.filter_by(id=sub.data).first()
+            if friend is not None:
+                friend.rooms.append(room)
+                db.session.add(friend)
+        db.session.commit()
+        return redirect(url_for('main.roomchat', id=room.id))
+    return render_template('create_room.html', form=form)
+        
+
+@main.route('/roomchat/<id>', methods=['POST','GET'])
+@login_required
+def roomchat(id):
+    if not current_user.is_authenticated:
+        return redirect(url_for('auth.login'))
+    room = Room.query.filter_by(id=id).first()
+    if room is None or current_user not in room.users.all():
+        flash('您无此群聊。')
+        return redirect(url_for('main.index'))
+    for message in current_user.receive_msgs.filter_by(room_id = room.id, state='unshow').all():
+        db.session.delete(message)
+    db.session.commit()
+    toshows = room.messages.filter_by(state="sent").order_by(Message.time_stamp).limit(1000)
+    return render_template('roomchat.html', room=room, toshows=toshows)
+
+
+@main.route('/manage-rooms', methods=['GET'])
+@login_required
+def manage_rooms():
+    return render_template('manage_rooms.html')
+
+
+@main.route('/quit-room/<id>')
+@login_required
+def quit_room(id):
+    room = Room.query.filter_by(id=id).first()
+    if room is not None and current_user in room.users.all():
+        current_user.rooms.remove(room)
+        db.session.commit()
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.manage_room')
+        return redirect(next)
+    return render_template('manage_room.html')
+
+
+@main.route('/delete-room/<id>')
+@login_required
+def delete_room(id):
+    room = current_user.rooms.filter_by(id=id).first()
+    if room is not None:
+        db.session.delete(room)
+        db.session.commit()
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.manage_room')
+        return redirect(next)
+    return render_template('manage_room.html')
+
+
+@main.route('/manage-room/<id>', methods=['GET', 'POST'])
+@login_required
+def manage_room(id):
+    room = current_user.rooms.filter_by(id=id).first()
+    if room is None:
+        flash('您无此群聊')
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('main.index')
+        return redirect(next)
+    form = ManageRoomForm()
+    form.friends.choices = [(friend.id, friend.nickname) for friend in current_user.get_friends() if friend not in room.users.all()]
+    if form.validate_on_submit():
+        room.name = form.name.data,
+        room.description = form.description.data,
+        db.session.add(room)
+        db.session.commit()
+        current_user.rooms.append(room)
+        db.session.add(current_user)
+        for sub in form.friends:
+            friend = User.query.filter_by(id=sub.data).first()
+            if friend is not None:
+                friend.rooms.append(room)
+                db.session.add(friend)
+        db.session.commit()
+        return redirect(url_for('main.roomchat', id=room.id))
+    form.name.data = room.name
+    form.description.data = room.description
+    return render_template('manage_room.html', form=form)
+
+
+@main.route('/administrate/posts')
+@login_required
+@admin_required
+def admin_posts():
+    resp = make_response(redirect(url_for('.administrate')))
+    resp.set_cookie('item', 'posts', max_age=30*24*60*60)
+    return resp
+
+
+@main.route('/administrate/comments')
+@login_required
+@admin_required
+def admin_comments():
+    resp = make_response(redirect(url_for('.administrate')))
+    resp.set_cookie('item', 'comments', max_age=30*24*60*60)
+    return resp
+
+
+@main.route('/administrate/imageposts')
+@login_required
+@admin_required
+def admin_imageposts():
+    resp = make_response(redirect(url_for('.administrate')))
+    resp.set_cookie('item', 'imageposts', max_age=30*24*60*60)
+    return resp
+
+
+@main.route('/administrate/users')
+@login_required
+@admin_required
+def admin_users():
+    resp = make_response(redirect(url_for('.administrate')))
+    resp.set_cookie('item', 'users', max_age=30*24*60*60)
+    return resp
+
+
+@main.route('/administrate', methods=['POST', 'GET'])
+@login_required
+@admin_required
+def administrate():
+    if not current_user.is_administrator():
+        return redirect(url_for('.index'))
+    items=None
+    if request.cookies.get('item')=='posts':
+        items = Post.query.all()
+    elif request.cookies.get('item')=='comments':
+        items = Comment.query.all()
+    elif request.cookies.get('item')=='imagepost':
+        items = ImagePost.query.all()
+    elif request.cookies.get('item')=='users':
+        items = User.query.all()
+    return render_template('administrate.html', items=items)
+
+
+@main.route('/state-post/<id>')
+@login_required
+@admin_required
+def state_post(id):
+    post = Post.query.filter_by(id=id).first()
+    if post:
+        post.state = not post.state
+        db.session.add(post)
+        db.session.commit()
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('.administrate')
+    return redirect(next)
+
+
+@main.route('/state-comment/<comment_id>', methods=['GET', 'POST'])
+@login_required
+def state_comment(comment_id):
+    comment = Comment.query.filter_by(id=comment_id).first()
+    post = Post.query.filter_by(id=comment.post_id).first()
+    if comment is not None:
+        if current_user.is_authenticated and current_user.is_administrator():
+            comment.state = not comment.state
+            db.session.add(comment)
+            db.session.commit()
+    else:
+        flash('无此评论。')
+    next = request.referrer
+    if next is None or not next.startswith('/'):
+        next = url_for('.post', post_id=post.id)
+    return redirect(next)
+
+
+@main.route('/state-imagepost/<id>')
+@login_required
+@admin_required
+def state_imagepost(id):
+    imagepost = ImagePost.query.filter_by(id=id).first()
+    if imagepost:
+        imagepost.state = not imagepost.state
+        db.session.add(imagepost)
+        db.session.commit()
+        next = request.referrer
+        if next is None or not next.startswith('/'):
+            next = url_for('.administrate')
+    return redirect(next)
+
+
+@socketio.on('connect', namespace='/client_conn')
+def connect():
+    if current_user.is_authenticated:
+        current_user.state = True
+        current_user.session_id = request.sid
+        db.session.add(current_user)
+        db.session.commit()
+        for friend in current_user.get_friends():
+            if friend.state:
+                emit('message',
+                     {'online':current_user.nickname},
+                     room = friend.session_id)
+        for room in current_user.rooms:
+            join_room(room.id)
+        
+
+@socketio.on('disconnect', namespace='/client_conn')
+def disconnect():
+    if current_user.is_authenticated:
+        current_user.state = False
+        current_user.session_id = None
+        current_user.last_seen = datetime.utcnow()+timedelta(hours=8)
+        db.session.add(current_user)
+        db.session.commit()
+        for friend in current_user.get_friends():
+            if friend.state:
+                emit('message',
+                     {'offline':current_user.nickname},
+                     room = friend.session_id)
+        for room in current_user.rooms:
+            leave_room(room.id)
+        
+
+@socketio.on('imessage', namespace='/client_conn')
+def test_message(message):
+    if 'type' in message and message['type'] == 'attention':
+        if message['content'] in ('post', 'imagepost'):
+            for friend in current_user.get_friends():
+                if friend.state:
+                    emit('message',
+                         {'type':'attention'},
+                         room = friend.session_id)
+        elif message['content'] in ('comment', 'reply'):
+            receiver = User.query.filter_by(id=int(message['receiver_id'])).first()
+            if receiver is not None and receiver.state:
+                emit('message',
+                     {'type':'attention'},
+                     room = receiver.session_id)
+        elif message['content'] == 'view':
+            imagepost = ImagePost.query.filter_by(id=int(message['imagepost_id'])).first()
+            if imagepost is not None:
+                reply_to = ([imagepost.author] if current_user!=imagepost.author else [])
+                for view in imagepost.views.all():
+                    if view.author not in reply_to and view.author != current_user and view.author.state:
+                        reply_to.append(view.author)
+                for user in reply_to:
+                     emit('message',
+                         {'type':'attention'},
+                         room = user.session_id)
+        elif message['content'] in ('friend_request', 'friend_confirm'):
+            receiver = User.query.filter_by(id=int(message['receiver_id'])).first()
+            if receiver is not None and receiver.state:
+                emit('message',
+                     {'type':'attention'},
+                     room = receiver.session_id)
+                    
+    elif 'state' in message and message['state']=='sending':
+        if 'receiver' in message and 'room' not in message:
+            user = User.query.filter_by(nickname=message['receiver']).first()
+            if user.state:
+                emit('message',
+                     {'data':message['data'],
+                      'sender':current_user.nickname,
+                      'receiver_id':user.id,
+                      'time':(datetime.utcnow()+timedelta(hours=8)).strftime('%Y-%m-%d %H:%M:%S'),
+                      'state':'sent'},
+                     room=user.session_id)
+            else:
+                message = Message(sender_id = current_user.id,
+                                  receiver_id = user.id,
+                                  data=message['data'],
+                                  time_stamp=(datetime.utcnow()+timedelta(hours=8)),
+                                  state='unshow')
+                db.session.add(message)
+                db.session.commit()
+        elif 'room' in message:
+            room = Room.query.filter_by(id=int(message['room'])).first()
+            emit('message',
+                 {'data':message['data'],
+                  'sender':current_user.nickname,
+                  'room_id':room.id,
+                  'time':(datetime.utcnow()+timedelta(hours=8)).strftime('%Y-%m-%d %H:%M:%S'),
+                  'state':'sent'},
+                  room=room.id)
+            message = Message(sender_id = current_user.id,
+                              receiver_id = None,
+                              room_id = room.id,
+                              data=message['data'],
+                              time_stamp=(datetime.utcnow()+timedelta(hours=8)),
+                              state='sent')
+            db.session.add(message)
+            db.session.commit()
+            offline_store_room_message(room, message)
+    elif 'state' in message and message['state'] in ('unshow', 'received'):
+        sender = User.query.filter_by(nickname=message['sender']).first()
+        message = Message(sender_id = sender.id,
+                          receiver_id = current_user.id,
+                          data=message['data'],
+                          room_id = (message['room_id'] if 'room_id' in message else None),
+                          time_stamp=(datetime.utcnow()+timedelta(hours=8)),
+                          state=message['state'])
+        db.session.add(message)
+        db.session.commit()

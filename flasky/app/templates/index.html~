@@ -1,0 +1,38 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block self_script %}
+{{ super() }}
+<script>
+  window.onload = function() {
+  console.log(document.cookie)
+  if (document.cookie.search("posts=friends") != -1 )
+  {
+  document.getElementById('posts-friends').className="active";
+  document.getElementById('posts-all').className="";}
+  else if (document.cookie.search("posts=all") != -1 )
+  {
+  document.getElementById('posts-all').className="active";
+  document.getElementById('posts-friends').className="";}
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<h1>最新博客</h1>
+<nav id="select-bar">
+  <ul id="selections">
+    <li id="posts-all"><a href="{{ url_for('main.all_posts') }}">全部</a></li>
+    {% if current_user.is_authenticated %}
+    <li id="posts-friends"><a href="{{ url_for('main.friend_posts') }}">朋友</a></li>
+    {% endif %}
+  </ul>
+</nav>
+
+{% include "./_posts_list.html" %}
+<div class="pagination">
+  {{ macros.pagination_widget(pagination, 'main.index') }}
+</div>
+{% endblock %}
+

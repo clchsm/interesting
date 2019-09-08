@@ -1,0 +1,55 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block self_script %}
+{{ super() }}
+<script>
+  window.onload = function() {
+  if (document.cookie.search(" images=friends") != -1 )
+  {document.getElementById('imageposts-friends').className="active";}
+  else
+  {document.getElementById('imageposts-all').className="active";
+  };
+  list = document.getElementsByClassName('imagepost');
+  for (var i = 0; i < list.length; i++)
+		      {list[i].onclick = imagepostClick;
+		      list[i].onmouseover = function (eventObj){
+		      target = eventObj.target;
+		      if (target.getAttribute('class') ==='imagepost'){
+		      target.style.backgroundColor = "#eeee88";}
+		      }
+		      list[i].onmouseout = function (eventObj){
+		      target = eventObj.target;
+		      if (target.getAttribute('class') ==='imagepost'){
+		      target.style.backgroundColor = "#eeeedd";}
+		      }
+}
+  };
+		      
+  function imagepostClick(eventObj) {
+		      target = eventObj.target;
+		      if (target.getAttribute('class') ==='imagepost'){
+  id = target.getAttribute('id');
+  window.location.href = "/show-imagepost/"+id;}
+  } 
+  
+</script>
+{% endblock %}
+
+
+{% block content %}
+<h1 id="post-title">日志</h1>
+<nav id="select-bar">
+  <ul id="selections">
+    <li id="imageposts-all"><a href="{{ url_for('.all_imageposts') }}">全部</a></li>
+    {% if current_user.is_authenticated %}
+    <li id="imageposts-friends"><a href="{{ url_for('.friend_imageposts') }}">朋友</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% if imageposts %}
+{% include "_imageposts_list.html" %}
+{{ macros.pagination_widget(pagination, 'main.show_imageposts') }}
+{% endif %}
+{% endblock %}

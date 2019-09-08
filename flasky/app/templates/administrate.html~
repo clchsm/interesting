@@ -1,0 +1,93 @@
+{% extends "./base.html" %}
+
+
+{% block self_script %}
+{{ super() }}
+<script>
+  window.onload = function() {
+  if (document.cookie.search("item=posts") != -1 )
+  {document.getElementById('posts').className="active";}
+  else if (document.cookie.search("item=comments") != -1 )
+  {document.getElementById('comments').className="active";}
+  else if (document.cookie.search("item=users") != -1 )
+  {document.getElementById('users').className="active";}
+  }
+</script>
+{% endblock %}
+
+{% block title %}
+<title>
+  后台管理
+</title>
+{% endblock %}
+
+{% block content %}
+<h1>管理博客/评论/用户</h1>
+<nav id="select-bar">
+  <ul id="selections">
+    <li id="posts">
+      <a href="{{ url_for('.show_posts') }}">博客</a>
+    </li>
+    <li id="comments">
+      <a href="{{ url_for('.show_comments') }}">评论</a>
+    </li>
+    <li id="users">
+      <a href="{{ url_for('.show_users') }}">用户</a>
+    </li>
+  </ul>
+</nav>
+
+{% if items %}
+<div class="scroll-panel">
+  <table id="admin">
+    {% for item in items %}
+    {% if item.body and item.title %}
+    <tr>
+      <td><h3>{{ item.title }}</h3></td>
+      <td>
+	<a href="{{ url_for('.state_post', id=item.id) }}">
+	  {% if item.state %}
+	  屏蔽
+	  {% else %}
+	  公开
+	  {% endif %}
+	</a>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2">{{ item.body | safe }}</td>
+    </tr>
+    {% elif item.body and not item.title %}
+    <tr>
+      <td>{{ item.body|safe }}</td>
+      <td>
+	<a href="{{ url_for('.state_comment', comment_id=item.id) }}">
+	  {% if item.state %}
+	  屏蔽
+	  {% else %}
+	  公开
+	  {% endif %}
+	</a>
+      </td>
+    </tr>
+    {% elif item.nickname %}
+    <tr>
+      <td>{{ item.nickname }}</td>
+      <td>
+	<a href="{{ url_for('.state_comment', comment_id=item.id) }}">
+	  {% if item.state %}
+	  屏蔽
+	  {% else %}
+	  公开
+	  {% endif %}
+	</a>
+      </td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </table>
+</div>
+
+{% endif %}
+
+{% endblock %}

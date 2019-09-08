@@ -1,0 +1,101 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block style %}
+<link rel="stylesheet" href="{{ url_for('static', filename='dropzone/dist/min/dropzone.min.css') }}" type="text/css">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='static.css') }}">
+{% endblock %}
+
+{% block script %}
+{{ super() }}
+<script src="{{ url_for('static', filename='dropzone/dist/min/dropzone.min.js') }}"></script>
+<script>
+  function onClick() {
+  var description = document.getElementById('description').value;
+  document.cookie = "description="+description;
+  
+  }
+</script>
+{{ dropzone.load_js() }}
+{{ dropzone.config() }}
+{% endblock %}
+
+
+{% block self_script %}
+<script>
+  $(document).ready(function() {
+  namespace = '/client_conn';
+  var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+  　　　　　　　//连接后发送日志
+  socket.on('connect', function(){
+  console.log('connected');
+      });
+  
+  socket.on('disconnect', function(){
+  console.log('leave');
+  });
+  
+  document.getElementById('upload').onclick = function () {
+  var description = document.getElementById('description').value;
+  document.cookie = "description="+description;
+  socket.emit('imessage', {type:'attention', content:'imagepost'});
+  }
+  
+  　　　　　　  //接收后端广播的信息
+  socket.on('message', function(msg) {
+  if (msg.online)
+  {
+  document.getElementsByName(msg.online)[0].style.color = "blue";
+  }
+  else if (msg.offline)
+  {
+  document.getElementsByName(msg.offline)[0].style.color = "gray";
+  }
+  else if (msg.type)
+  {
+  attention = document.getElementById('attention');
+  attention.innerHTML = parseInt(attention.innerHTML, 10)+1;
+  }
+  else if (msg.receiver_id)
+  {
+  sender = document.getElementById(msg.sender);
+      if (sender.className === 'active') {
+  sender.innerHTML = parseInt(sender.innerHTML, 10) + 1;
+  if (sender.innerHTML > 99)
+  {
+  sender.innerHTML = "...";
+  }
+  }
+  else {
+  sender.innerHTML = 1;
+  sender.className = 'active';
+  }
+  msg.state = "unshow";
+  socket.emit('imessage', msg);
+  }
+  else
+  {
+  document.getElementById(msg.room_id).innerHTML = "新消息";
+  document.getElementById(msg.room_id).className="active";
+  msg.receiver_id={{ current_user.id }};
+  msg.state = "unshow";
+  socket.emit('imessage', msg);
+  }
+  });
+  });
+</script>
+{% endblock %}
+
+
+{% block content %}
+<h1 id="post-title">上传图片</h1>
+
+<div class="row">
+  <div class="col-md-12">
+    <textarea id="description" maxlength="200"></textarea>
+    <button id="upload" onclick="onClick()" >上传</button>
+    </br>
+    {{ dropzone.create(action='main.upload') }}
+  </div>
+</div>
+{% endblock %}

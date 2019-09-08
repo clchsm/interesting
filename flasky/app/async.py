@@ -1,0 +1,58 @@
+from flask import current_app, render_template
+from flask_mail import Message
+from flask_socketio import emit
+from threading import Thread
+
+from app import mail, db
+from app.models import Message as Msg
+from app.models import Attention
+
+
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+def send_mail(to, subject, template, **kwargs):
+    app = current_app._get_current_object()
+    msg = Message(app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + subject, sender = app.config['FLASKY_MAIL_SENDER'], recipients=[to])
+    msg.body = render_template(template+'.txt', **kwargs)
+    msg.html = render_template(template+'.html', **kwargs)
+    thr = Thread(target=send_async_email, args=[app, msg])
+    thr.start()
+    return thr
+    
+
+def offline_store_async_room_message(app, room, msg):
+    with app.app_context():
+        for user in room.users.all():
+            if not user.state:
+                msg = Msg(sender_id = msg.sender_id,
+                          receiver_id = user.id,
+                          room_id = msg.room_id,
+                          data=msg.data,
+                          time_stamp=msg.time_stamp,
+                          state='unshow')
+                db.session.add(msg)
+        db.session.commit()
+
+def offline_store_room_message(room, msg):
+    app = current_app._get_current_object()
+    thr = Thread(target=offline_store_async_room_message, args=[app, room, msg])
+    thr.start()
+    return thr
+
+
+def store_async_attentions(app, users, body, url):
+    with app.app_context():
+        for user in users:
+            attention = Attention(body = body,
+                                  receiver_id = user.id,
+                                  url = url)
+            db.session.add(attention)
+        db.session.commit()
+
+def store_attentions(users, body, url):
+    app = current_app._get_current_object()
+    thr = Thread(target=store_async_attentions, args=[app, users, body, url])
+    thr.start()
+    return thr

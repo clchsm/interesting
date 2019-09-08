@@ -1,0 +1,36 @@
+from flask import current_app, render_template
+from flask_mail import Message
+from threading import Thread
+from app import mail, db
+
+
+def send_async_email(app, msg):
+    with app.app_context():
+        mail.send(msg)
+
+def send_mail(to, subject, template, **kwargs):
+    app = current_app._get_current_object()
+    msg = Message(app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + subject, sender = app.config['FLASKY_MAIL_SENDER'], recipients=[to])
+    msg.body = render_template(template+'.txt', **kwargs)
+    msg.html = render_template(template+'.html', **kwargs)
+    thr = Thread(target=send_async_email, args=[app, msg])
+    thr.start()
+    return thr
+    
+
+def offline_store_async_room_message(room, msg):
+    for user in room.users.all():
+        if not user.state:
+            msg = Message(sender = msg.sender,
+                          receiver_id = user.id,
+                          room_id = room.id,
+                          data=msg.data,
+                          time_stamp=(datetime.utcnow()+timedelta(hours=8)),
+                          state='unshow')
+            db.session.add(msg)
+    db.session.commit()
+
+def offline_store_room_message(room, msg):
+    thr = Thread(target=offline_store_async_room_message, args=[room, msg])
+    thr.start()
+    return thr

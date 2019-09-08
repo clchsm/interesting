@@ -1,0 +1,32 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block self_script %}
+{{ super() }}
+<script>
+  window.onload = function() {
+  var img = document.getElementById('photo');
+  img.onclick = imgclick;
+  };
+  function imgclick(eventObj) {
+  var image = eventObj.target;
+  var container = document.getElementById('photo-container');
+  var x = eventObj.clientX;
+  var y = eventObj.clientY;
+  var width = container.offsetWidth;
+  var imgwidth = image.offsetWidth;
+  if (x > (width/2+imgwidth/2-100)) {
+  window.location.href = "{{ url_for('main.next_photo', id=photo.id) }}";}
+  else if (x < (width/2-imgwidth/2+100)){
+  window.location.href = "{{ url_for('main.prev_photo', id=photo.id) }}";}
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<h3 class="post-time">{{ photo.time_stamp.strftime('%Y年%m月%d日 %H:%M') }}</h3>
+<div id="photo-container">
+  <img id="photo" src="{{ url_for('main.get_image', id=photo.id, size='medium') }}">
+  
+</div>
+{% endblock %}

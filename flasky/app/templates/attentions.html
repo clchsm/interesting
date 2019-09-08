@@ -1,0 +1,22 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+<h1 id="post-title">提示信息</h1>
+<div class="scroll-panel">
+  <table id="attentions">
+    <tr>
+      <td colspan="2">
+	<a href="{{ url_for('main.clear_attentions', id=current_user.id) }}">清除消息</a>
+      </td>
+    </tr>
+      {% for attention in current_user.attentions.all() %}
+    <tr>
+      <td>{{ attention.body }}<a href="{{ url_for('main.check_attention', id=attention.id) }}">去看看</a></td>
+      <td><a href="{{ url_for('main.clear_attention', id=attention.id) }}">忽略</a></td>
+      </li>
+      {% endfor %}
+    </ul>
+  </table>
+</div>
+{% endblock %}

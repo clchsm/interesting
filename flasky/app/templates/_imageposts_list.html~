@@ -1,0 +1,17 @@
+<div class="scroll-panel">
+  {% for imagepost in (imageposts if current_user.is_authenticated else imageposts[:5]) %}
+  <section class="imagepost", id="{{ imagepost.id }}">
+    <h3 class="post-time">{{ imagepost.author.nickname }}<span style="float:right; font-size:0.8em; margin-right:30px">{{ imagepost.time_stamp.strftime('%Y年%m月%d日')}}</span></h3>
+    <p class="imagepost-content">{{ imagepost.content[:60] }}</p>
+    <ul class="photo-areas">
+    {% for photo in imagepost.photos.limit(4) %}
+    <li class="photo-area">
+      <a href="{{ url_for('main.show_photo', id=photo.id) }}">
+	<img class="imagepost-photo" src="{{ url_for('main.get_image', id=photo.id, size='small') }}">
+      </a>
+    </li>
+    {% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+</div>

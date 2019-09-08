@@ -1,0 +1,39 @@
+from urllib.parse import urlparse, urljoin
+from flask import request
+from functools import wraps
+from flask import abort
+from flask_login import current_user
+from .models import Permission
+
+
+def permission_required(permission):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.can(permission):
+                abort(403)
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def admin_required(f):
+    return permission_required(Permission.ADMINISTRATOR)(f)
+
+
+def is_safe_url(target):
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
+
+
+def resize_image(image, filename, base_width):
+    filename, ext = os.path.splitext(filename)
+    img = Image.open(image)
+    if img.size[0] <= base_width:
+        return filename + ext
+    w_percent = (base_width /float(img.size[0]))
+    h_size = int((float(img.size[1])*float(w_percent)))
+    img = img.resize((base_width, h_size), PIL.Image.ANTIALIAS)
+    filename += current_app.config['ALBUMY_PHOTO_SUFFIX'][base_width] + ext
+    img.save(os.path.join(current_app.config['APP_UPLOAD_PATH']+'/'+str(current_user.id), filename), optimize=True, quality=85)
+    return filename

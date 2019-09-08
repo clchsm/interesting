@@ -1,0 +1,17 @@
+<div class="scroll-panel">
+  <table id="posts">
+    {% for post in (posts if current_user.is_authenticated else posts[:5]) %}
+    {% if post.state %}
+    <tr class="post-title">
+      <td class="post-title"><a href="{{ url_for('.post', post_id=post.id) }}">{{ post.title }}</a></td>
+      <td class="author"><a href="{{ url_for('.user', id=post.author.id) }}">{{ post.author.nickname }}</a></td>
+      <td class="time">{{ post.time_stamp }}</td>
+      <td class="author"><a href="{{ url_for('.user', id=post.author.id) }}">{{ post.comments.all()|length }}条评论</a></td>
+    </tr>
+    <tr class="post-body">
+      <td class="body" colspan="4"><div class="block">{{ (post.body[:60]+'...' if post.body[60] else post.body) | safe }}</div></td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </table>
+</div>

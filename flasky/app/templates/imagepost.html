@@ -1,0 +1,126 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block script %}
+{{ super() }}
+{{ ckeditor.load(pkg_type='basic') }}
+{% endblock %}
+
+{% block self_script %}
+<script>
+  $(document).ready(function() {
+  namespace = '/client_conn';
+  var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+  　　　　　　　//连接后发送日志
+  socket.on('connect', function(){
+  console.log('connected');
+      });
+  
+  socket.on('disconnect', function(){
+  console.log('leave');
+  });
+  
+  if (document.getElementById('view-submit')) {
+  document.getElementById('view-submit').onclick = function () {
+  socket.emit('imessage', {type:'attention', content:'view', imagepost_id:'{{ imagepost.id }}'});
+  }
+  }
+  
+  　　　　　　  //接收后端广播的信息
+  socket.on('message', function(msg) {
+  if (msg.online)
+  {
+  document.getElementsByName(msg.online)[0].style.color = "blue";
+  }
+  else if (msg.offline)
+  {
+  document.getElementsByName(msg.offline)[0].style.color = "gray";
+  }
+  else if (msg.type)
+  {
+  attention = document.getElementById('attention');
+  attention.innerHTML = parseInt(attention.innerHTML, 10)+1;
+  }
+  else if (msg.receiver_id)
+  {
+  sender = document.getElementById(msg.sender);
+      if (sender.className === 'active') {
+  sender.innerHTML = parseInt(sender.innerHTML, 10) + 1;
+  if (sender.innerHTML > 99)
+  {
+  sender.innerHTML = "...";
+  }
+  }
+  else {
+  sender.innerHTML = 1;
+  sender.className = 'active';
+  }
+  msg.state = "unshow";
+  socket.emit('imessage', msg);
+  }
+  else
+  {
+  document.getElementById(msg.room_id).innerHTML = "新消息";
+  document.getElementById(msg.room_id).className="active";
+  msg.receiver_id={{ current_user.id }};
+  msg.state = "unshow";
+  socket.emit('imessage', msg);
+  }
+  });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<h1>{{ imagepost.author.nickname }}</h1>
+<div class="scroll-panel">
+  <section class="imagepost-content">
+    <h3 class="post-time">{{ imagepost.time_stamp.strftime('%Y年%m月%d日') }}</h3>
+    <p class="imagepost-content">{{ imagepost.content }}</p>
+    <ul class="photo-areas" style='{{"height:220px" if imagepost.photos.count() <=4 else "height:440px"}}'>
+      {% for photo in imagepost.photos.all() %}
+      <li class="photo-area">
+	<a href="{{ url_for('main.show_photo', id=photo.id) }}">
+	  <img class="imagepost-photo" src="{{ url_for('main.get_image', id=photo.id, size='small') }}">
+	</a>
+      </li>
+    {% endfor %}
+    </ul>
+    <ul class="nav imagepost">
+      {% if current_user == imagepost.author %}
+      <li style="float:right"><a href= "{{ url_for('main.delete_imagepost', id=imagepost.id) }}">删除</a></li>
+      {% endif %}
+      <li>
+	<a style="color:red"
+	   {% if current_user != imagepost.author and current_user not in imagepost.collectors.all() %}
+	   href="{{ url_for('main.collect', id=imagepost.id) }}"
+	   {% endif %}
+	 >收藏{{ imagepost.collectors.count() }}</a>
+      </li>
+      {% if current_user.is_friend(imagepost.author) %}
+      <li>
+	<a href="{{ url_for('main.view',id=imagepost.id) }}">留言</a>
+      </li>
+      {% endif %}
+    </ul>
+  </section>
+  
+  <div id="views">
+    {% if form %}
+    {{ wtf.view_form(form) }}
+    {% endif %}
+    <table>
+      {% for view in imagepost.views.all() %}
+      {% if current_user.is_friend(view.author) or current_user == view.author %}
+      <tr>
+	<td><a href="{{ url_for('main.user', id=view.author_id) }}">{{ view.author.nickname }}:</a></td>
+	<td>
+	  <a style="color:black" href="{{ url_for('main.view', id=imagepost.id, reply_to=view.author.nickname) }}">{{ view.view }}</a>
+	</td>
+      </tr>
+      {% endif %}
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}

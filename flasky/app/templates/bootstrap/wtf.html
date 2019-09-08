@@ -1,0 +1,317 @@
+{% macro login_form(form) %}
+<form method="POST">
+  {{ form.csrf_token }}
+  {{ form.hidden_tag() }}
+  <table>
+  <tr>
+    <td class="label">{{ form.nickname.label }}</td>
+    <td>{{ form.nickname(id='my-text-field') }}</td>
+  </tr>
+  <tr>
+    <td class="label">{{ form.password.label }}</td>
+    <td>{{ form.password(id="my-text-field") }}</td>
+  </tr>
+  <tr>
+    <td class="label">{{ form.submit(class="submit") }}</td>
+    <td><a href="{{ url_for('auth.forget_password') }}">忘记密码？</a></td>
+  </tr>
+  </table>
+</form>
+{% endmacro %}
+
+
+{% macro forget_password_form(form) %}
+<form method="POST">
+  {{ form.csrf_token }}
+  {{ form.hidden_tag() }}
+  <table>
+    <tr>
+      <td class="label">{{ form.nickname.label }}</td>
+      <td>{{ form.nickname(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.email.label }}</td>
+      <td>{{ form.email(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.ID_num.label }}</td>
+      <td>{{ form.ID_num(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.password.label }}</td>
+      <td>{{ form.password(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.password2.label }}</td>
+      <td>{{ form.password2(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.submit(class="submit") }}</td>
+    </tr>
+  </table>
+</form>
+{% endmacro %}
+
+
+{% macro change_password_form(form) %}
+<form method="POST">
+  {{ form.csrf_token }}
+  {{ form.hidden_tag() }}
+  <table>
+  <tr>
+    <td class="password">{{ form.password.label }}</td>
+    <td>{{ form.password(id='my-text-field') }}</td>
+  </tr>
+  <tr>
+    <td class="label">{{ form.password2.label }}</td>
+    <td>{{ form.password2(id='my-text-field') }}</td>
+  </tr>
+  <tr>
+    <td class="label">{{ form.submit(class="submit") }}</td>
+  </tr>
+  </table>
+</form>
+{% endmacro %}
+
+
+{% macro profile_form(form) %}
+<form method="POST">
+  {{ form.csrf_token }}
+  {{ form.hidden_tag() }}
+  <table>
+    {% if form.nickname %}
+    <tr>
+      <td class="label">{{ form.nickname.label }}</td>
+      <td>{{ form.nickname(id='my-text-field') }}</td>
+    </tr>
+    {% endif %}
+    {% if form.name%}
+    <tr>
+      <td class="label">{{ form.name.label }}</td>
+      <td>{{ form.name(id='my-text-field') }}</td>
+    </tr>
+    {% endif %}
+    {% if form.gender %}
+    <tr>
+      <td class="label">{{ form.gender.label }}</td>
+      <td>
+	  {% for subfield in form.gender %}
+	  {{ subfield }}{{ subfield.label }}
+	  {% endfor %}
+      </td>
+    </tr>
+    {% endif %}
+    {% if form.ID_num %}
+    <tr>
+      <td class="label">{{ form.ID_num.label }}</td>
+      <td>{{ form.ID_num(id='my-text-field') }}</td>
+    </tr>
+    {% endif %}
+    {% if form.email %}
+    <tr>
+      <td class="label">{{ form.email.label }}</td>
+      <td>{{ form.email(id='my-text-field') }}</td>
+    </tr>
+    {% endif %}
+    {% if form.password %}
+    <tr>
+      <td class="label">{{ form.password.label }}</td>
+      <td>{{ form.password(id='my-text-field') }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+      <td class="label">{{ form.submit(class="submit") }}</td>
+    </tr>
+  </table>
+</form>
+{% endmacro %}
+
+
+{% macro register_form(form) %}
+<form method="POST">
+  {{ form.csrf_token }}
+  {{ form.hidden_tag() }}
+  <table>
+    <tr>
+      <td class="label">{{ form.nickname.label }}</td>
+      <td>{{ form.nickname(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.name.label }}</td>
+      <td>{{ form.name(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.gender.label }}</td>
+      <td>
+	  {% for subfield in form.gender %}
+	  {{ subfield }}{{ subfield.label }}
+	  {% endfor %}
+      </td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.ID_num.label }}</td>
+      <td>{{ form.ID_num(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.email.label }}</td>
+      <td>{{ form.email(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.password.label }}</td>
+      <td>{{ form.password(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.password2.label }}</td>
+      <td>{{ form.password2(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.submit(class="submit") }}</td>
+    </tr>
+  </table>
+</form>
+{% endmacro %}
+
+
+{% macro post_form(form) %}
+<form method="POST">
+  {{ form.hidden_tag() }}
+  <ul class="post">
+    <li class="label">{{ form.title.label }}{{ form.title(id='my-text-field') }}</li>
+  <li>{{ form.body.label }}</li>
+  <li><pre>{{ form.body(class="post-body") }}</pre></li>
+  <li class="submit">{{ form.submit(id="post-submit") }}</li>
+  </ul>
+</form>
+{% endmacro %}
+
+
+{% macro comment_form(form) %}
+<form method="POST">
+  {{ form.hidden_tag() }}
+  <ul class="comment">
+  <li><pre>{{ form.body(class="comment-body") }}</pre></li>
+  <li class="submit">{{ form.submit(id="comment-submit") }}</li>
+  </ul>
+</form>
+{% endmacro %}
+
+
+{% macro confirm_form(form) %}
+<form method="POST">
+  {{ form.hidden_tag() }}
+  <ul class="confirm">
+    <li>{{ form.submit_yes(class="confirm-submit") }}</li>
+    <li>{{ form.submit_no(class="confirm-submit") }}</li>
+  </ul>
+</form>
+{% endmacro %}
+
+
+{% macro request_form(form) %}
+<form method="POST">
+  {{ form.hidden_tag() }}
+  <ul id="request">
+    <li>{{ form.message }}</li>
+    <li>{{ form.submit(class="confirm-submit") }}</li>
+  </ul>
+</form>
+{% endmacro %}
+
+
+
+{% macro search_form(form) %}
+<form method="POST">
+  {{ form.hidden_tag() }}
+  <ul id="search">
+    <li>{{ form.body(class="confirm-submit") }}</li>
+    <li>{{ form.submit(class="submit") }}</li>
+  </ul>
+</form>
+{% endmacro %}
+
+
+{% macro room_form(form) %}
+<form method="POST">
+  {{ form.csrf_token }}
+  {{ form.hidden_tag() }}
+  <table>
+    <tr>
+      <td class="label">{{ form.name.label }}</td>
+      <td>{{ form.name(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.description.label }}</td>
+      <td>{{ form.description(id='my-text-field') }}</td>
+    </tr>
+    <tr>
+      <td class="label" style="vertical-align:top;">{{ form.friends.label }}</td>
+      {% if form.friends.choices != [] %}
+      <td>
+	<select multiple="multiple" style="width:100%; border:thin solid black">
+	  {% for subfield in form.friends %}
+	  {{ subfield }}
+	  {% endfor %}
+	</select>
+      </td>
+      {% else %}
+      <td>
+	您无好友。
+      </td>
+      {% endif %}
+    </tr>
+    <tr>
+      <td class="label">{{ form.submit(class="submit") }}</td>
+    </tr>
+  </table>
+</form>
+{% endmacro %}
+
+
+{% macro manage_room_form(form) %}
+<form method="POST">
+  {{ form.csrf_token }}
+  {{ form.hidden_tag() }}
+  <table>
+    <tr>
+      <td class="label">{{ form.name.label }}</td>
+      <td>{{ form.name(id="my-text-field") }}</td>
+    </tr>
+    <tr>
+      <td class="label">{{ form.description.label }}</td>
+      <td>{{ form.description(id='my-text-field') }}</td>
+    </tr>
+    
+    <tr>
+      <td class="label"style="vertical-align:top;">{{ form.friends.label }}</td>
+      {% if form.friends.choices != [] %}
+      <td>
+	<select multiple="multiple"style="width:100%">
+	  {% for subfield in form.friends %}
+	  {{ subfield }}
+	  {% endfor %}
+	</select>
+      </td>
+      {% else %}
+      <td>
+	您已无好友可添加。
+      </td>
+      {% endif %}
+    </tr>
+    <tr>
+      <td class="label">{{ form.submit(id="room-submit") }}</td>
+    </tr>
+  </table>
+</form>
+{% endmacro %}
+
+
+{% macro view_form(form) %}
+<form method="POST">
+  {{ form.csrf_token }}
+  {{ form.hidden_tag() }}
+  <ul class="view nav">
+    <li>{{ form.view(id='view-input') }}</li>
+    <li>{{ form.submit(id='view-submit') }}</li>
+  </ul>
+</form>
+{% endmacro %}

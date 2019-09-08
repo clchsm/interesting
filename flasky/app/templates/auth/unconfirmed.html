@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+<div>
+  <p>
+    您的账户还未确认，请在邮箱确认后再浏览。
+    若无确认邮件，请点击<a href="{{ url_for('auth.resend_confirmation') }}">此处</a>进行确认。
+  <p>
+</div>
+{% endblock %}

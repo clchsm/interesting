@@ -1,0 +1,85 @@
+from flask import flash
+from flask_login import current_user
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField, RadioField, PasswordField, TextField
+from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Regexp
+from wtforms import ValidationError
+from .. models import User
+
+class LoginForm(FlaskForm):
+    nickname = StringField(u'昵称', validators=[DataRequired()])
+    password = PasswordField(u'密码', validators=[DataRequired(), Length(3,10)])
+    submit = SubmitField(u'登录')
+
+
+class ForgetPasswordForm(FlaskForm):
+    nickname = StringField(u'您的昵称', validators=[DataRequired()])
+    email = StringField(u'注册邮箱', validators=[DataRequired()])
+    ID_num = StringField(u'身份证号', validators=[DataRequired()])
+    password = PasswordField(u'密码', validators=[DataRequired(), Length(3,10), EqualTo('password2', message='两次密码必须相同。')])
+    password2 = PasswordField(u'确认密码', validators=[DataRequired(), Length(3,10)])
+    submit = SubmitField(u'更改')
+
+    def validate_email(self, field):
+        user = User.query.filter_by(email=field.data).first()
+        if user is None:
+            flash('此邮箱并未注册！')
+            raise ValidationError('此邮箱并未注册！')
+    
+    
+class ChangePasswordForm(FlaskForm):
+    password = PasswordField(u'密码', validators=[DataRequired(), Length(3,10), EqualTo('password2', message='两次密码必须相同。')])
+    password2 = PasswordField(u'确认密码', validators=[DataRequired(), Length(3,10)])
+    submit = SubmitField(u'更改')
+
+    def validate_password():
+        if current_user.verify_password(self.password.data):
+            flash('密码未变。')
+            raise ValueError('密码未变。')
+    
+
+class RegisterForm(FlaskForm):
+    nickname = StringField(u'昵称', validators=[DataRequired(), Length(4,32), Regexp('^[A-Za-z][A-Za-z0-9_]*', 0, '昵称必须由字母数字及下划线组成。')])
+    name = StringField(u'姓名', validators=[DataRequired()])
+    gender = RadioField(u'性别', choices = [(u'男',u'男'), (u'女', u'女')], validators=[DataRequired()])
+    password = PasswordField(u'密码', validators=[DataRequired(message='密码不能为空'), Length(3, 10, message='密码长度为3到10位.'), EqualTo('password2', message='两次密码必须相同。')])
+    password2 = PasswordField(u'确认密码', validators=[DataRequired(message='密码不能为空'), Length(3, 10)])
+    email = StringField(u'邮箱', validators=[DataRequired()])
+    ID_num = StringField(u'身份证号', validators=[DataRequired()])
+    submit = SubmitField(u'确认')
+
+    def validate_nickname(self, field):
+        user = User.query.filter_by(nickname=field.data).first()
+        if user is not None:
+            flash('此昵称已被使用.')
+            raise ValidationError('此昵称已被使用')
+
+    def validate_email(self, field):
+        user = User.query.filter_by(email=field.data).first()
+        if user is not None:
+            flash('此邮箱已被注册.')
+            raise ValidationError('此邮箱已被注册')
+
+    def validate_ID_num(self, field):
+        user = User.query.filter_by(ID_num=field.data).first()
+        if user is not None:
+            flash('此身份证号已被注册.')
+            raise ValidationError('此身份证号已被注册')
+
+
+class UserProfileForm(FlaskForm):
+    nickname = StringField(u'昵称', validators=[DataRequired()])
+    gender = RadioField(u'性别', choices = [(u'男',u'男'), (u'女', u'女')], validators=[DataRequired()])
+    email = StringField(u'邮箱', validators=[DataRequired()])
+    submit = SubmitField(u'确认')
+
+
+class AdminProfileForm(FlaskForm):
+    name=StringField(u'姓名', validators=[DataRequired()])
+    ID_num=StringField(u'身份证号', validators=[DataRequired()])
+    submit = SubmitField(u'确认')
+    
+
+class ConfirmForm(FlaskForm):
+    submit_yes = SubmitField(u'确认')
+    submit_no = SubmitField(u'取消')

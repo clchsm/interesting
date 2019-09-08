@@ -1,0 +1,79 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block script %}
+{{ super() }}
+<script type="text/javascript" src="{{ url_for('static',filename='ckeditor/ckeditor.js') }}">
+</script>
+{% endblock %}
+
+{% block self_script %}
+<script>
+  $(document).ready(function() {
+  namespace = '/client_conn';
+  var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+  　　　　　　　//连接后发送日志
+  socket.on('connect', function(){
+  console.log('connected');
+      });
+  
+  socket.on('disconnect', function(){
+  console.log('leave');
+  });
+  
+  document.getElementById('post-submit').onclick = function () {
+  console.log('sent');
+  socket.emit('imessage', {type:'attention', content:'post'});
+  //window.location.href = "{{ url_for('main.index') }}";
+  }
+  
+  　　　　　　  //接收后端广播的信息
+  socket.on('message', function(msg) {
+  if (msg.online)
+  {
+  document.getElementsByName(msg.online)[0].style.color = "blue";
+  }
+  else if (msg.offline)
+  {
+  document.getElementsByName(msg.offline)[0].style.color = "gray";
+  }
+  else if (msg.type)
+  {
+  console.log(msg.type);
+  document.getElementsById('attention').innerHTML = "10";
+  }
+  else if (msg.receiver_id)
+  {
+  sender = document.getElementById(msg.sender);
+      if (sender.className === 'active') {
+  sender.innerHTML = parseInt(sender.innerHTML, 10) + 1;
+  if (sender.innerHTML > 99)
+  {
+  sender.innerHTML = "...";
+  }
+  }
+  else {
+  sender.innerHTML = 1;
+  sender.className = 'active';
+  }
+  msg.state = "unshow";
+  socket.emit('imessage', msg);
+  }
+  else
+  {
+  document.getElementById(msg.room_id).innerHTML = "新消息";
+  document.getElementById(msg.room_id).className="active";
+  msg.receiver_id={{ current_user.id }};
+  msg.state = "unshow";
+  socket.emit('imessage', msg);
+  }
+  });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+{{ wtf.post_form(form) }}
+{% endblock %}
+
+

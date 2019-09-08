@@ -1,0 +1,66 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block content %}
+<h1 id="post-title">{{ post.title }}</h1>
+<div class="post">
+  <h5 id="post-author"><a href="{{ url_for('.user', id=post.author.id) }}">{{ post.author.nickname }}</a>作于{{ post.time_stamp.strftime('%Y年%m月%d日')}}</h5>
+  <p id="post-body">{{ post.body |safe }}</p>
+  <ul class="post-bar">
+    {% if current_user.is_authenticated %}
+    {% if not form %}
+    <li class="post-bar">
+      <a class="post-bar" id="edit-comment" href="{{ url_for('.comment', post_id=post.id) }}">评论({{ post.comments|length }})</a>
+    </li>
+    {% endif %}
+  {% if current_user == post.author %}
+    <li class="post-bar">
+      <a class="post-bar" id="edit-post" href="{{ url_for('.edit_post', post_id=post.id) }}">修改</a>
+    </li>
+    <li class="post-bar">
+      <script>
+	document.getElementById("delete-post").onclick = function() {
+	con = confirm("确认删除此博客？");
+	if(con) {
+	window.location = window.location.hostname+'/delete-post/{{ post.id }}';
+	}
+	}
+      </script>
+      <button id="delete-post">删除</button>
+    </li>
+  </ul>
+  {% endif %}
+  {% endif %}
+</div>
+{% if form %}
+{{ wtf.comment_form(form) }}
+{% endif %}
+<div class="comments">
+  <h5 id="comments">{{ post.comments|length }}条评论</h5>
+  <table id="comments">
+    {% for comment in post.comments %}
+    {% if comment.state or comment.post==post %}
+    <tr id="comment">
+      <td id="comment-author"><a href="{{ url_for('.user', id=comment.author.id) }}">{{ comment.author.nickname }}</a></td>
+      <td id="comment">
+	{% if not comment.state %}
+	<span style="color:red">(已被屏蔽)</span>
+	{% endif %}
+	{{ comment.body }}
+      </td>
+      <td>
+	{% if current_user.is_authenticated %}
+	{% if current_user==comment.author %}
+	<a id="delete-comment" href="{{ url_for('.delete_comment', comment_id=comment.id) }}">删除</a>
+	{% elif current_user.is_administrator() %}
+	<a id="delete-comment" href="{{ url_for('.state_comment', comment_id=comment.id) }}">{{ ('屏蔽' if comment.state else '公开') }}</a>
+	{% endif %}
+	{% endif %}
+	{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

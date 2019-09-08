@@ -1,0 +1,105 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block self_script %}
+{{ super() }}
+<script>
+  window.onload = function() {
+  if (document.cookie.search("user=imageposts") != -1 )
+  {document.getElementById('imageposts').className="active";
+  if (document.getElementById('add')){
+  document.getElementById('add').href= "{{ url_for('main.upload') }}";}
+  }
+  else
+  {document.getElementById('posts').className="active";
+  if (document.getElementById('add')){
+  document.getElementById('add').href= "{{ url_for('main.edit_post') }}";}
+  }
+  
+  list = document.getElementsByClassName('imagepost');
+  for (var i = 0; i < list.length; i++)
+  {list[i].onclick = imagepostClick;
+  list[i].onmouseover = function (eventObj){
+  target = eventObj.target;
+  if (target.getAttribute('class') ==='imagepost'){
+  target.style.backgroundColor = "#eeee88";}
+  }
+  list[i].onmouseout = function (eventObj){
+  target = eventObj.target;
+  if (target.getAttribute('class') ==='imagepost'){
+  target.style.backgroundColor = "#eeeedd";}
+  }
+  }
+  };
+		      
+  function imagepostClick(eventObj) {
+  target = eventObj.target;
+  if (target.getAttribute('class') ==='imagepost'){
+  id = target.getAttribute('id');
+  window.location.href = "/show-imagepost/"+id;}
+  } 
+  
+</script>
+{% endblock %}
+
+
+{% block content %}
+<h1>
+  {% if current_user==user %}
+  <a class="edit-profile" href="{{ url_for('auth.edit_profile', id=user.id) }}">{{ user.nickname }}</a>
+   {% elif current_user.is_administrator() %}
+  <a class="edit-profile" href="{{ url_for('auth.edit_profile_admin', id=user.id) }}">{{ user.nickname }}</a>
+  {% else %}
+  {{ user.nickname }}
+  {% endif %}
+  {% if current_user.is_authenticated and current_user!=user %}
+  {% if current_user.is_friend(user) %}
+  （好友）
+  {% elif current_user.request_sent(user) %}
+  (已发送好友请求)
+  {% elif current_user.is_requested_by(user) %}
+  (申请加您为好友)
+  {% endif %}
+  {% endif %}
+</h1>
+{% if current_user.is_authenticated %}
+{% if not current_user.is_friend(user) and not current_user.request_sent(user) and current_user != user %}
+<p>
+  <a id="" href="{{ url_for('.add_friend', id=user.id) }}">
+    {% if current_user.is_requested_by(user) %}
+    加好友
+    {% else %}
+    申请加为好友
+    {% endif %}
+  </a>
+</p>
+{% endif %}
+{% endif %}
+<nav id="select-bar">
+  <ul id="selections">
+    <li id="posts">
+      <a href="{{ url_for('main.user_posts', id=user.id) }}">博客</a>
+    </li>
+    <li id="imageposts">
+      <a href="{{ url_for('main.user_imageposts', id=user.id) }}">日志</a>
+    </li>
+    {% if current_user == user %}
+    <li style="float:right; background-color:rgb(238, 238, 221); border:thin solid black; border-bottom:none; margin-right:20px; border-radius:5px 5px 0 0;">
+      <a id="add" href="">新增</a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+
+{% if posts %}
+{% include "./_posts_list.html" %}
+{% elif imageposts %}
+{% include "./_imageposts_list.html" %}
+{% endif %}
+{% if current_user.is_friend(user) or current_user == user %}
+<div class="pagination">
+  {{ macros.pagination_widget(pagination, 'main.user', id=user.id) }}
+</div>
+{% endif %}
+{% endblock %}

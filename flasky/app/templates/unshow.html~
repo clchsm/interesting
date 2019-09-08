@@ -1,0 +1,26 @@
+{% extends "./base.html" %}
+
+
+{% block content %}
+<h2>Receive:</h2>
+<table id="unshow">
+  {% if unshows %}
+  {% for unshow in unshows %}
+  <th>
+    <td></td>
+    <td></td>
+    <td></td>
+  </th>
+  <tr>
+    <td>{{ unshow.sender }}</td>
+    <td colspan="2">{{ unshow.time }}</td>
+  </tr>
+  <tr>
+    <td colspan="2">{{ unshow.data }}</td>
+    <td><a href="{{ url_for('.webchat', nickname=unshow.sender) }}" target="_blank">回复</a>
+    </td>
+  </tr>
+  {% endfor %}
+  {% endif %}
+</table>
+{% endblock %}

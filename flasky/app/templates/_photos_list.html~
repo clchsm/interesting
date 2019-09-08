@@ -1,0 +1,9 @@
+<div class="scroll-panel">
+    {% for photo in (photos if current_user.is_authenticated else photos[:5]) %}
+    <div class="photo-area">
+      <a href="{{ url_for('main.show_photo', id=photo.id) }}">
+	<img src="{{ url_for('main.get_image', id=photo.id, size='small') }}">
+      </a>
+    </div>
+    {% endfor %}
+</div>

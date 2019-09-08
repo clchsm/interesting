@@ -1,0 +1,23 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+<div class="post">
+  <h3 id="post-title"><span id="post-title">{{ post.title }}</span>
+  <span id="post-author">作者：{{ post.author.nickname }}</span></h3>
+  <p>{{ post.body }}</p>
+  <ul class="post-bar">
+    <li class="post-bar">
+      <a class="post-bar" id="edit-comment" href="{{ url_for('.comment', post_id=post.id) }}">修改</a>
+    </li>
+  {% if current_user.is_authenticated and current_user == post.author %}
+    <li class="post-bar">
+      <a class="post-bar" id="edit-post" href="{{ url_for('.edit_post', post_id=post.id) }}">修改</a>
+    </li>
+    <li class="post-bar">
+      <a class="post-bar" id="delete-post" href="{{ url_for('.delete_post', post_id=post.id) }}">删除</a>
+    </li>
+  </ul>
+  {% endif %}
+</div>
+{% endblock %}

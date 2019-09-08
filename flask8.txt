@@ -1,0 +1,416 @@
+app/auth/forms.py:3:1: F401 'wtforms.TextField' imported but unused
+app/auth/forms.py:3:80: E501 line too long (82 > 79 characters)
+app/auth/forms.py:4:80: E501 line too long (85 > 79 characters)
+app/auth/forms.py:5:1: F811 redefinition of unused 'ValidationError' from line 4
+app/auth/forms.py:8:1: E302 expected 2 blank lines, found 1
+app/auth/forms.py:10:73: E231 missing whitespace after ','
+app/auth/forms.py:15:71: E231 missing whitespace after ','
+app/auth/forms.py:15:80: E501 line too long (133 > 79 characters)
+app/auth/forms.py:17:39: E251 unexpected spaces around keyword / parameter equals
+app/auth/forms.py:17:41: E251 unexpected spaces around keyword / parameter equals
+app/auth/forms.py:17:48: E231 missing whitespace after ','
+app/auth/forms.py:17:80: E501 line too long (98 > 79 characters)
+app/auth/forms.py:18:80: E501 line too long (161 > 79 characters)
+app/auth/forms.py:19:80: E501 line too long (98 > 79 characters)
+app/auth/forms.py:45:39: E251 unexpected spaces around keyword / parameter equals
+app/auth/forms.py:45:41: E251 unexpected spaces around keyword / parameter equals
+app/auth/forms.py:45:48: E231 missing whitespace after ','
+app/auth/forms.py:45:80: E501 line too long (98 > 79 characters)
+app/auth/__init__.py:5:25: E225 missing whitespace around operator
+app/auth/__init__.py:7:1: E402 module level import not at top of file
+app/auth/__init__.py:7:1: F401 '.views' imported but unused
+app/auth/views.py:1:1: F811 redefinition of unused 'render_template' from line 1
+app/auth/views.py:1:80: E501 line too long (85 > 79 characters)
+app/auth/views.py:8:8: W606 'async' and 'await' are reserved keywords starting with Python 3.7
+app/auth/views.py:10:1: E302 expected 2 blank lines, found 1
+app/auth/views.py:10:30: E251 unexpected spaces around keyword / parameter equals
+app/auth/views.py:10:32: E251 unexpected spaces around keyword / parameter equals
+app/auth/views.py:18:27: E225 missing whitespace around operator
+app/auth/views.py:21:80: E501 line too long (80 > 79 characters)
+app/auth/views.py:26:33: E251 unexpected spaces around keyword / parameter equals
+app/auth/views.py:26:35: E251 unexpected spaces around keyword / parameter equals
+app/auth/views.py:40:80: E501 line too long (83 > 79 characters)
+app/auth/views.py:46:55: W291 trailing whitespace
+app/auth/views.py:49:42: E251 unexpected spaces around keyword / parameter equals
+app/auth/views.py:49:44: E251 unexpected spaces around keyword / parameter equals
+app/auth/views.py:49:51: E231 missing whitespace after ','
+app/auth/views.py:87:5: E265 block comment should start with '# '
+app/auth/views.py:87:80: E501 line too long (88 > 79 characters)
+app/auth/views.py:92:80: E501 line too long (131 > 79 characters)
+app/auth/views.py:92:90: E225 missing whitespace around operator
+app/auth/views.py:107:80: E501 line too long (95 > 79 characters)
+app/auth/views.py:116:28: E225 missing whitespace around operator
+app/auth/views.py:122:1: W391 blank line at end of file
+app/auth/views.py:122:1: W293 blank line contains whitespace
+app/main/forms.py:1:1: F401 'flask.flash' imported but unused
+app/main/forms.py:3:1: F401 'wtforms.RadioField' imported but unused
+app/main/forms.py:3:1: F401 'wtforms.PasswordField' imported but unused
+app/main/forms.py:3:1: F401 'wtforms.TextField' imported but unused
+app/main/forms.py:3:80: E501 line too long (103 > 79 characters)
+app/main/forms.py:4:1: F401 'wtforms.validators.EqualTo' imported but unused
+app/main/forms.py:4:1: F401 'wtforms.validators.ValidationError' imported but unused
+app/main/forms.py:4:1: F401 'wtforms.validators.Regexp' imported but unused
+app/main/forms.py:4:80: E501 line too long (85 > 79 characters)
+app/main/forms.py:6:1: F401 'flask_login.current_user' imported but unused
+app/main/forms.py:8:1: F401 'app.models.User' imported but unused
+app/main/forms.py:12:9: E225 missing whitespace around operator
+app/main/forms.py:13:11: E225 missing whitespace around operator
+app/main/forms.py:15:1: W293 blank line contains whitespace
+app/main/forms.py:18:30: E231 missing whitespace after ','
+app/main/forms.py:21:1: W293 blank line contains whitespace
+app/main/forms.py:26:1: W293 blank line contains whitespace
+app/main/forms.py:27:1: W293 blank line contains whitespace
+app/main/forms.py:29:1: E303 too many blank lines (3)
+app/main/forms.py:37:1: W293 blank line contains whitespace
+app/main/forms.py:47:49: E251 unexpected spaces around keyword / parameter equals
+app/main/forms.py:47:51: E251 unexpected spaces around keyword / parameter equals
+app/main/__init__.py:5:1: E402 module level import not at top of file
+app/main/__init__.py:5:1: F401 '.views' imported but unused
+app/main/__init__.py:5:1: F401 '.errors' imported but unused
+app/main/errors.py:3:1: E302 expected 2 blank lines, found 1
+app/main/errors.py:6:5: F821 undefined name 'app'
+app/main/errors.py:10:13: F821 undefined name 'flash'
+app/main/errors.py:12:9: F821 undefined name 'app'
+app/main/errors.py:14:16: F821 undefined name 'LoginForm'
+app/main/errors.py:15:30: F821 undefined name 'current_user'
+app/main/errors.py:16:9: F821 undefined name 'logout_user'
+app/main/errors.py:17:16: F821 undefined name 'render_template'
+app/main/views.py:1:1: F401 're' imported but unused
+app/main/views.py:1:10: E401 multiple imports on one line
+app/main/views.py:3:80: E501 line too long (126 > 79 characters)
+app/main/views.py:4:1: F401 'flask_login.UserMixin' imported but unused
+app/main/views.py:4:1: F401 'flask_login.LoginManager' imported but unused
+app/main/views.py:4:1: F401 'flask_login.AnonymousUserMixin' imported but unused
+app/main/views.py:4:1: F401 'flask_login.login_user' imported but unused
+app/main/views.py:4:1: F401 'flask_login.logout_user' imported but unused
+app/main/views.py:4:1: F401 'flask_login.fresh_login_required' imported but unused
+app/main/views.py:4:80: E501 line too long (144 > 79 characters)
+app/main/views.py:5:1: F401 'flask_socketio.SocketIO' imported but unused
+app/main/views.py:7:1: F401 'paginate' imported but unused
+app/main/views.py:10:1: F401 'pathlib.Path' imported but unused
+app/main/views.py:11:1: F401 'flask_whooshalchemyplus' imported but unused
+app/main/views.py:13:1: F401 'threading.Lock' imported but unused
+app/main/views.py:15:1: E265 block comment should start with '# '
+app/main/views.py:17:1: F401 'flask.abort' imported but unused
+app/main/views.py:18:1: F811 redefinition of unused 'current_user' from line 4
+app/main/views.py:21:1: F403 'from .forms import *' used; unable to detect undefined names
+app/main/views.py:23:1: F403 'from app.models import *' used; unable to detect undefined names
+app/main/views.py:24:1: F401 'app.decorators.permission_required' imported but unused
+app/main/views.py:26:10: W606 'async' and 'await' are reserved keywords starting with Python 3.7
+app/main/views.py:28:1: E302 expected 2 blank lines, found 1
+app/main/views.py:31:44: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:31:46: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:38:48: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:38:50: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:42:25: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:42:27: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:45:13: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:46:80: E501 line too long (83 > 79 characters)
+app/main/views.py:47:17: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:47:33: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:47:45: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:47:65: E225 missing whitespace around operator
+app/main/views.py:47:68: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:47:80: E501 line too long (126 > 79 characters)
+app/main/views.py:47:91: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:47:109: E225 missing whitespace around operator
+app/main/views.py:48:33: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:48:80: E501 line too long (140 > 79 characters)
+app/main/views.py:56:12: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:72:22: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:72:80: E501 line too long (132 > 79 characters)
+app/main/views.py:75:22: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:75:80: E501 line too long (142 > 79 characters)
+app/main/views.py:77:20: E225 missing whitespace around operator
+app/main/views.py:78:22: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:78:80: E501 line too long (132 > 79 characters)
+app/main/views.py:80:80: E501 line too long (130 > 79 characters)
+app/main/views.py:86:45: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:86:47: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:93:50: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:93:52: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:100:12: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:103:43: E225 missing whitespace around operator
+app/main/views.py:109:80: E501 line too long (94 > 79 characters)
+app/main/views.py:110:13: E225 missing whitespace around operator
+app/main/views.py:111:39: E225 missing whitespace around operator
+app/main/views.py:112:51: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:112:80: E501 line too long (168 > 79 characters)
+app/main/views.py:113:23: E225 missing whitespace around operator
+app/main/views.py:114:18: E225 missing whitespace around operator
+app/main/views.py:116:46: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:116:80: E501 line too long (153 > 79 characters)
+app/main/views.py:117:18: E225 missing whitespace around operator
+app/main/views.py:118:23: E225 missing whitespace around operator
+app/main/views.py:119:80: E501 line too long (113 > 79 characters)
+app/main/views.py:123:47: E231 missing whitespace after ','
+app/main/views.py:126:12: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:138:20: F405 'ConfirmForm' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:147:25: E225 missing whitespace around operator
+app/main/views.py:153:20: F405 'RequestForm' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:154:25: E225 missing whitespace around operator
+app/main/views.py:156:21: F405 'FriendRequest' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:161:25: E225 missing whitespace around operator
+app/main/views.py:177:14: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:191:12: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:195:37: W291 trailing whitespace
+app/main/views.py:204:16: F405 'PostForm' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:205:12: E225 missing whitespace around operator
+app/main/views.py:207:16: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:212:13: E225 missing whitespace around operator
+app/main/views.py:212:14: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:222:80: E501 line too long (81 > 79 characters)
+app/main/views.py:223:80: E501 line too long (86 > 79 characters)
+app/main/views.py:225:9: F841 local variable 'e' is assigned to but never used
+app/main/views.py:228:23: E225 missing whitespace around operator
+app/main/views.py:241:17: F405 'Attention' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:256:12: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:274:17: F405 'Attention' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:292:12: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:306:12: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:310:12: F405 'CommentForm' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:312:19: F405 'Comment' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:323:1: W293 blank line contains whitespace
+app/main/views.py:328:15: F405 'Comment' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:336:12: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:343:12: F405 'CommentForm' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:345:17: F405 'Reply' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:345:27: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:345:29: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:346:33: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:346:35: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:347:34: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:347:36: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:348:30: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:348:32: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:351:80: E501 line too long (85 > 79 characters)
+app/main/views.py:352:80: E501 line too long (97 > 79 characters)
+app/main/views.py:358:80: E501 line too long (112 > 79 characters)
+app/main/views.py:358:86: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:358:88: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:361:53: E231 missing whitespace after ','
+app/main/views.py:364:12: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:377:12: F405 'ConfirmForm' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:385:63: W291 trailing whitespace
+app/main/views.py:389:59: E231 missing whitespace after ','
+app/main/views.py:392:15: F405 'Comment' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:393:12: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:406:15: F405 'Comment' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:407:12: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:424:13: F405 'Reply' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:438:48: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:438:50: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:438:57: E231 missing whitespace after ','
+app/main/views.py:442:12: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:443:19: F405 'AdminProfileForm' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:468:21: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:468:40: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:468:42: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:475:80: E501 line too long (106 > 79 characters)
+app/main/views.py:481:25: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:481:39: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:481:41: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:482:41: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:482:43: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:483:41: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:483:43: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:484:43: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:484:45: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:485:40: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:485:42: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:489:80: E501 line too long (87 > 79 characters)
+app/main/views.py:490:80: E501 line too long (87 > 79 characters)
+app/main/views.py:505:13: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:511:80: E501 line too long (113 > 79 characters)
+app/main/views.py:517:49: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:517:51: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:524:53: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:524:55: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:532:13: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:533:75: E225 missing whitespace around operator
+app/main/views.py:533:80: E501 line too long (86 > 79 characters)
+app/main/views.py:534:17: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:534:38: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:534:50: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:534:73: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:534:80: E501 line too long (139 > 79 characters)
+app/main/views.py:534:102: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:535:33: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:535:80: E501 line too long (141 > 79 characters)
+app/main/views.py:537:80: E501 line too long (91 > 79 characters)
+app/main/views.py:543:17: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:557:17: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:572:14: E225 missing whitespace around operator
+app/main/views.py:572:15: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:573:80: E501 line too long (111 > 79 characters)
+app/main/views.py:579:12: F405 'ViewForm' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:580:80: E501 line too long (99 > 79 characters)
+app/main/views.py:582:16: F405 'View' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:582:30: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:582:32: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:583:33: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:583:35: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:584:25: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:584:27: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:584:80: E501 line too long (102 > 79 characters)
+app/main/views.py:589:80: E501 line too long (83 > 79 characters)
+app/main/views.py:604:17: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:613:80: E501 line too long (80 > 79 characters)
+app/main/views.py:621:13: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:642:13: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:644:32: E225 missing whitespace around operator
+app/main/views.py:645:21: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:645:38: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:645:50: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:645:69: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:645:80: E501 line too long (135 > 79 characters)
+app/main/views.py:645:98: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:648:21: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:648:40: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:648:55: E225 missing whitespace around operator
+app/main/views.py:651:21: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:651:40: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:651:58: E225 missing whitespace around operator
+app/main/views.py:652:26: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:655:28: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:655:36: E225 missing whitespace around operator
+app/main/views.py:655:56: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:657:32: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:657:40: E225 missing whitespace around operator
+app/main/views.py:657:60: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:657:80: E501 line too long (83 > 79 characters)
+app/main/views.py:666:13: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:668:32: E225 missing whitespace around operator
+app/main/views.py:669:21: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:669:38: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:669:50: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:669:69: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:669:80: E501 line too long (135 > 79 characters)
+app/main/views.py:669:98: F405 'Friendship' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:672:21: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:672:40: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:672:55: E225 missing whitespace around operator
+app/main/views.py:675:21: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:675:40: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:675:58: E225 missing whitespace around operator
+app/main/views.py:676:26: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:679:28: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:679:36: E225 missing whitespace around operator
+app/main/views.py:679:56: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:681:32: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:681:40: E225 missing whitespace around operator
+app/main/views.py:681:60: F405 'Photo' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:687:51: E231 missing whitespace after ','
+app/main/views.py:692:12: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:695:15: F405 'Message' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:695:50: F405 'Message' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:695:64: E225 missing whitespace around operator
+app/main/views.py:695:80: E501 line too long (253 > 79 characters)
+app/main/views.py:695:81: F405 'Message' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:695:100: E225 missing whitespace around operator
+app/main/views.py:695:125: F405 'Message' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:695:139: E225 missing whitespace around operator
+app/main/views.py:695:164: F405 'Message' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:695:183: E225 missing whitespace around operator
+app/main/views.py:695:196: F405 'Message' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:695:211: E711 comparison to None should be 'if cond is None:'
+app/main/views.py:695:211: E225 missing whitespace around operator
+app/main/views.py:695:229: F405 'Message' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:710:12: F405 'RoomForm' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:711:80: E501 line too long (98 > 79 characters)
+app/main/views.py:713:16: F405 'Room' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:713:25: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:713:27: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:714:32: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:714:34: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:715:31: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:715:33: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:721:22: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:728:1: W293 blank line contains whitespace
+app/main/views.py:730:46: E231 missing whitespace after ','
+app/main/views.py:735:12: F405 'Room' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:739:63: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:739:65: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:739:80: E501 line too long (96 > 79 characters)
+app/main/views.py:742:62: F405 'Message' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:742:80: E501 line too long (86 > 79 characters)
+app/main/views.py:755:12: F405 'Room' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:784:12: F405 'EditRoomForm' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:788:24: F405 'none' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:789:21: E225 missing whitespace around operator
+app/main/views.py:832:10: E225 missing whitespace around operator
+app/main/views.py:833:35: E225 missing whitespace around operator
+app/main/views.py:834:17: F405 'Post' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:835:37: E225 missing whitespace around operator
+app/main/views.py:836:17: F405 'Comment' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:837:37: E225 missing whitespace around operator
+app/main/views.py:838:17: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:852:31: E231 missing whitespace after ':'
+app/main/views.py:853:26: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:853:28: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:856:1: W293 blank line contains whitespace
+app/main/views.py:869:32: E231 missing whitespace after ':'
+app/main/views.py:870:26: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:870:28: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:873:1: W293 blank line contains whitespace
+app/main/views.py:882:33: E231 missing whitespace after ':'
+app/main/views.py:883:30: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:883:32: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:885:24: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:885:80: E501 line too long (83 > 79 characters)
+app/main/views.py:888:29: E231 missing whitespace after ':'
+app/main/views.py:889:26: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:889:28: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:891:25: F405 'ImagePost' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:891:80: E501 line too long (90 > 79 characters)
+app/main/views.py:893:63: E225 missing whitespace around operator
+app/main/views.py:893:80: E501 line too long (89 > 79 characters)
+app/main/views.py:895:80: E501 line too long (105 > 79 characters)
+app/main/views.py:898:22: E111 indentation is not a multiple of four
+app/main/views.py:898:22: E117 over-indented
+app/main/views.py:899:26: E128 continuation line under-indented for visual indent
+app/main/views.py:899:33: E231 missing whitespace after ':'
+app/main/views.py:900:26: E128 continuation line under-indented for visual indent
+app/main/views.py:900:30: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:900:32: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:901:1: W293 blank line contains whitespace
+app/main/views.py:902:49: E225 missing whitespace around operator
+app/main/views.py:904:20: F405 'User' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:907:29: E231 missing whitespace after ':'
+app/main/views.py:908:31: E231 missing whitespace after ':'
+app/main/views.py:909:36: E231 missing whitespace after ':'
+app/main/views.py:910:29: E231 missing whitespace after ':'
+app/main/views.py:910:80: E501 line too long (98 > 79 characters)
+app/main/views.py:911:30: E231 missing whitespace after ':'
+app/main/views.py:914:27: F405 'Message' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:914:41: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:914:43: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:915:46: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:915:48: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:917:80: E501 line too long (84 > 79 characters)
+app/main/views.py:922:20: F405 'Room' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:924:25: E231 missing whitespace after ':'
+app/main/views.py:925:27: E231 missing whitespace after ':'
+app/main/views.py:926:28: E231 missing whitespace after ':'
+app/main/views.py:927:25: E231 missing whitespace after ':'
+app/main/views.py:927:80: E501 line too long (94 > 79 characters)
+app/main/views.py:928:26: E231 missing whitespace after ':'
+app/main/views.py:929:19: E127 continuation line over-indented for visual indent
+app/main/views.py:930:23: F405 'Message' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:930:37: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:930:39: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:931:42: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:931:44: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:932:38: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:932:40: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:934:80: E501 line too long (80 > 79 characters)
+app/main/views.py:940:19: F405 'Message' may be undefined, or defined from star imports: .forms, app.models
+app/main/views.py:940:33: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:940:35: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:941:38: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:941:40: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:943:34: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:943:36: E251 unexpected spaces around keyword / parameter equals
+app/main/views.py:943:80: E501 line too long (91 > 79 characters)
+app/main/views.py:948:1: W391 blank line at end of file
+app/main/views.py:948:1: W293 blank line contains whitespace

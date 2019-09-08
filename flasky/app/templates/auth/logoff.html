@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+<h1>注销</h1>
+<p>您确定要注销账户{{ current_user.nickname }}？</p></br>
+<p style="font-size:0.8em">您的博客，日志及其他一切数据都将被删除。</p>
+{{ wtf.confirm_form(form) }}
+{% endblock %}

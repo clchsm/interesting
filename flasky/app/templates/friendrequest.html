@@ -1,0 +1,103 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block self_script %}
+<script>
+  $(document).ready(function() {
+  namespace = '/client_conn';
+  var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+  　　　　　　　//连接后发送日志
+  socket.on('connect', function(){
+  console.log('connected');
+      });
+  
+  socket.on('disconnect', function(){
+  console.log('leave');
+  });
+  
+  if (document.getElementById('submit')) {
+  document.getElementById('submit').onclick = function () {
+  socket.emit('imessage', {type:'attention', content:'friend_request', receiver_id:'{{ user.id }}'});
+  }
+  }
+
+   if (document.getElementById('submit_yes')) {
+  document.getElementById('submit_yes').onclick = function () {
+  socket.emit('imessage', {type:'attention', content:'friend_confirm', receiver_id:'{{ user.id }}'});
+  }
+  }
+  
+  　　　　　　  //接收后端广播的信息
+  socket.on('message', function(msg) {
+  if (msg.online)
+  {
+  document.getElementsByName(msg.online)[0].style.color = "blue";
+  }
+  else if (msg.offline)
+  {
+  document.getElementsByName(msg.offline)[0].style.color = "gray";
+  }
+  else if (msg.type)
+  {
+  attention = document.getElementById('attention');
+  attention.innerHTML = parseInt(attention.innerHTML, 10)+1;
+  }
+  else if (msg.receiver_id)
+  {
+  sender = document.getElementById(msg.sender);
+      if (sender.className === 'active') {
+  sender.innerHTML = parseInt(sender.innerHTML, 10) + 1;
+  if (sender.innerHTML > 99)
+  {
+  sender.innerHTML = "...";
+  }
+  }
+  else {
+  sender.innerHTML = 1;
+  sender.className = 'active';
+  }
+  msg.state = "unshow";
+  socket.emit('imessage', msg);
+  }
+  else
+  {
+  document.getElementById(msg.room_id).innerHTML = "新消息";
+  document.getElementById(msg.room_id).className="active";
+  msg.receiver_id={{ current_user.id }};
+  msg.state = "unshow";
+  socket.emit('imessage', msg);
+  }
+  });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="profile">
+  <h1>{{ user.nickname }}</h1>
+  {% if current_user.is_requested_by(user) %}
+  <p>验证消息：{{ current_user.requested.filter_by(from_id=user.id).first().validation }}</p>
+  {{ wtf.confirm_form(form) }}
+  {% else%}
+  <table id="profile">
+    <tr>
+      <td>姓名：</td>
+      <td>{{ user.name }}</td>
+    </tr>
+    <tr>
+      <td>性别：</td>
+      <td>{{ user.gender }}</td>
+    </tr>
+    <tr>
+      <td>邮箱：</td>
+      <td>{{ user.email }}</td>
+    </tr>
+  </table>
+  {{ wtf.request_form(form) }}
+  {% endif %}
+</div>
+
+<h1>{{ user.nickname }}的博客</h1>
+{% include "./_posts_list.html" %}
+
+{% endblock %}

@@ -1,0 +1,121 @@
+{% extends "./base.html" %}
+
+
+{% block self_script %}
+{{ super() }}
+<script>
+  window.onload = function() {
+  if (document.cookie.search("item=posts") != -1 )
+  {document.getElementById('posts').className="active";}
+  else if (document.cookie.search("item=comments") != -1 )
+  {document.getElementById('comments').className="active";}
+  else if (document.cookie.search("item=imageposts") != -1 )
+  {document.getElementById('imageposts').className="active";}
+  else if (document.cookie.search("item=users") != -1 )
+  {document.getElementById('users').className="active";}
+  }
+</script>
+{% endblock %}
+
+{% block title %}
+<title>
+  后台管理
+</title>
+{% endblock %}
+
+{% block content %}
+<h1>管理博客/评论/用户</h1>
+<nav id="select-bar">
+  <ul id="selections">
+    <li id="posts">
+      <a href="{{ url_for('main.admin_posts') }}">博客</a>
+    </li>
+    <li id="comments">
+      <a href="{{ url_for('main.admin_comments') }}">评论</a>
+    </li>
+     <li id="imageposts">
+      <a href="{{ url_for('main.admin_imageposts') }}">日志</a>
+    </li>
+    <li id="users">
+      <a href="{{ url_for('main.admin_users') }}">用户</a>
+    </li>
+  </ul>
+</nav>
+
+{% if items %}
+<div class="scroll-panel">
+    {% for item in items %}
+    {% if item.body and item.title %}
+    <table id="admin-post">
+      <tr>
+	<td><h3>{{ item.title }}</h3></td>
+	<td>
+	  <a href="{{ url_for('.state_post', id=item.id) }}">
+	    {% if item.state %}
+	    屏蔽
+	    {% else %}
+	    公开
+	    {% endif %}
+	   </a>
+	</td>
+      </tr>
+      <tr>
+	<td colspan="2">{{ item.body | safe }}</td>
+      </tr>
+    </table>
+    {% elif item.body and not item.title %}
+    <table id="admin-comment">
+      <tr>
+	<td>{{ item.body|safe }}</td>
+	 <td>
+	   <a href="{{ url_for('main.state_comment', comment_id=item.id) }}">
+	     {% if item.state %}
+	     屏蔽
+	     {% else %}
+	     公开
+	     {% endif %}
+	   </a>
+	 </td>
+      </tr>
+    </table>
+    {% elif item.description %}
+    <section class="imagepost">
+      <h3 class="post-time">{{ imagepost.author.nickname }}<a style="float:right; font-size:0.8em; margin-right:30px" href="{{ url_for('main.state_imagepost', id=item.id )}}">{% if item.state %}
+	     屏蔽
+	     {% else %}
+	     公开
+	     {% endif %}</a></h3>
+      <p class="imagepost-content">{{ imagepost.content }}</p>
+      <ul class="photo-areas">
+	{% for photo in imagepost.photos.limit(4) %}
+	<li class="photo-area">
+	  <a href="{{ url_for('main.show_photo', id=photo.id) }}">
+	    <img class="imagepost-photo" src="{{ url_for('main.get_image', id=photo.id, size='small') }}">
+	  </a>
+	</li>
+	{% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+    {% elif item.nickname %}
+    <table id="admin-user">
+      <tr>
+	<td>{{ item.nickname }}</td>
+	<td>
+	  <a href="{{ url_for('main.state_user', user_id=item.id) }}">
+	    {% if item.state %}
+	    屏蔽
+	    {% else %}
+	    公开
+	    {% endif %}
+	  </a>
+	</td>
+      </tr>
+    </table>
+    {% endif %}
+    {% endfor %}
+</div>
+
+{% endif %}
+
+{% endblock %}

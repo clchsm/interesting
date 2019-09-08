@@ -1,0 +1,71 @@
+function MyLayer(options) {
+    this.options = options ;
+}
+
+MyLayer.prototype.openLayer = function () {
+    var background_layer = document.createElement("p");//设置屏蔽层
+    background_layer.style.display = "none";
+    background_layer.style.position = "absolute";
+    background_layer.style.top = "0px";
+    background_layer.style.left = "0px";
+    background_layer.style.width = "100%";
+    background_layer.style.height = "100%";
+    background_layer.style.backgroundColor = "gray";
+    background_layer.style.zIndex = "1001";
+    background_layer.style.opacity = "0.8" ;
+
+    var open_layer = document.createElement("p");
+    open_layer.style.display = "none";
+    open_layer.style.position = "absolute";
+    open_layer.style.top = this.options.top === undefined ? "10%" : this.options.top;
+    open_layer.style.left = this.options.left === undefined ? "10%" :this.options.left;
+    open_layer.style.width = this.options.width === undefined ? "80%" : this.options.width;
+    open_layer.style.height = this.options.height === undefined ? "80%" : this.options.height;
+    open_layer.style.border = "1px solid lightblue";
+    open_layer.style.borderRadius = "15px" ;
+    open_layer.style.boxShadow = "4px 4px 10px #171414";
+    open_layer.style.backgroundColor = "white";
+    open_layer.style.zIndex = "1002";
+    open_layer.style.overflow = "auto";
+    
+    var p_toolBar = document.createElement("p");
+    p_toolBar.style.textAlign = "right";
+    p_toolBar.style.paddingTop = "10px" ;
+    p_toolBar.style.backgroundColor = "aliceblue";
+    p_toolBar.style.height = "40px";
+    
+    var span_title = document.createElement("span");
+    span_title.style.fontSize = "18px";
+    span_title.style.color = "blue" ;
+  span_title.style.float = "left";
+    span_title.style.marginLeft = "20px";
+    
+    var span_title_content = document.createTextNode(this.options.title === undefined ? "" : this.options.title);
+    span_title.appendChild(span_title_content);
+    p_toolBar.appendChild(span_title);
+    
+    var span_close = document.createElement("span");
+    span_close.style.fontSize = "16px";
+  span_close.style.color = "blue" ;
+    span_close.style.cursor = "pointer";
+    span_close.style.marginRight = "20px";
+    span_close.onclick = function () {
+	open_layer.style.display = "none";
+	background_layer.style.display = "none";
+    };
+    
+    var span_close_content = document.createTextNode("关闭");
+    span_close.appendChild(span_close_content);
+    p_toolBar.appendChild(span_close);
+    open_layer.appendChild(p_toolBar);
+    
+    var p_content = document.createElement("p");
+    p_content.style.textAlign = "center";
+    var content_area = document.createTextNode(this.options.content === undefined ? "" : this.options.content);
+    p_content.appendChild(content_area);
+    open_layer.appendChild(p_content);
+    document.body.appendChild(open_layer);
+    document.body.appendChild(background_layer);
+    open_layer.style.display = "block" ;
+    background_layer.style.display = "block";
+};

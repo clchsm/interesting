@@ -1,0 +1,109 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block script %}
+{{ super() }}
+{{ ckeditor.load(pkg_type='basic') }}
+{% endblock %}
+
+{% block self_script %}
+<script>
+  $(document).ready(function() {
+  namespace = '/client_conn';
+  var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+  　　　　　　　//连接后发送日志
+  socket.on('connect', function(){
+  console.log('connected');
+      });
+  
+  socket.on('disconnect', function(){
+  console.log('leave');
+  });
+  
+  document.getElementById('comment-submit').onclick = function () {
+  socket.emit('imessage', {type:'attention', content:'reply', receiver_id:'{{ reply_to.id }}'});
+  }
+  
+  　　　　　　  //接收后端广播的信息
+  socket.on('message', function(msg) {
+  if (msg.online)
+  {
+  document.getElementsByName(msg.online)[0].style.color = "blue";
+  }
+  else if (msg.offline)
+  {
+  document.getElementsByName(msg.offline)[0].style.color = "gray";
+  }
+  else if (msg.type)
+  {
+  console.log(msg.type);
+  document.getElementsById('attention').innerHTML = "10";
+  }
+  else if (msg.receiver_id)
+  {
+  sender = document.getElementById(msg.sender);
+      if (sender.className === 'active') {
+  sender.innerHTML = parseInt(sender.innerHTML, 10) + 1;
+  if (sender.innerHTML > 99)
+  {
+  sender.innerHTML = "...";
+  }
+  }
+  else {
+  sender.innerHTML = 1;
+  sender.className = 'active';
+  }
+  msg.state = "unshow";
+  socket.emit('imessage', msg);
+  }
+  else
+  {
+  document.getElementById(msg.room_id).innerHTML = "新消息";
+  document.getElementById(msg.room_id).className="active";
+  msg.receiver_id={{ current_user.id }};
+  msg.state = "unshow";
+  socket.emit('imessage', msg);
+  }
+  });
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<h1 id="post-title">{{ post.title }}</h1>
+<div class="post">
+  <h5 id="post-author"><a href="{{ url_for('.user', id=post.author.id) }}">{{ post.author.nickname }}</a>作于{{ post.time_stamp.strftime('%Y年%m月%d日')}}</h5>
+  <p id="post-body">{{ post.body |safe }}</p>
+</div>
+
+<div class="comments">
+  <h5 id="comments-num">回复评论</h5>
+  <table id="comments">
+    <tr class="comment">
+      <td class="comment-author"><a href="{{ url_for('.user', id=comment.author.id) }}">{{ comment.author.nickname }}</a></td>
+      <td class="comment">
+	{{ comment.body|safe }}
+      </td>
+      <td>
+      </td>
+    </tr>
+    {% for reply in comment.replys %}
+    <tr class="comment">
+      <td></td>
+      <td class="comment">
+	{{ reply.replyer }}回复{{ reply.replyed_to.nickname}}:
+	{% if not reply.state and current_user != reply.author.nickname %}
+	<span style="color:red">(已被屏蔽)</span>
+	{% endif %}
+	{% if current_user == post.author %}
+	{{ reply.body|safe }}
+	{% endif %}
+      </td>
+      <td>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {{ wtf.comment_form(form) }}
+</div>
+{% endblock %}

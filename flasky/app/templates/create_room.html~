@@ -1,0 +1,41 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+{% block self_script %}
+{{ super() }}
+<script>
+  window.onload = function() {
+  if (document.cookie.search("photos=all") != -1 )
+  {document.getElementById('photos-all').className="active";}
+  else if (document.cookie.search("photos=friend") != -1 )
+  {document.getElementById('photos-friend').className="active";}
+  }
+</script>
+{% endblock %}
+
+
+{% block content %}
+<h1 id="post-title">图像博物馆</h1>
+<nav id="select-bar">
+  <ul id="selections">
+    <li id="photos-all"><a href="{{ url_for('.all_photos') }}">全部</a></li>
+    {% if current_user.is_authenticated %}
+    <li id="photos-friend"><a href="{{ url_for('.friend_photos') }}">朋友</a></li>
+    {% endif %}
+  </ul>
+</nav>
+
+<div class="scroll-panel">
+  {% if photos %}
+  {% for photo in photos %}
+  <div class="photo-area">
+    <a href= "{{ url_for('main.medium_photo', filename=photo.filename, size='medium') }}">
+      <img src="{{ url_for('main.get_image', filename=photo.filename, size='small') }}">
+    </a>
+  </div>
+  {% endfor %}
+  {{ macros.pagination_widget(pagination, 'main.show_photos') }}
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+source app/venv/bin/activate
+
+export MAIL_SERVER='smtp.qq.com'
+export MAIL_USERNAME='614566327@qq.com'
+export MAIL_PASSWORD='qrbadlruqsplbffg'
+
+export DBUSERNAME='root'
+export PASSWORD='1991@clc'
+export HOSTNAME='localhost'
+export DATABASE='myweb'
+export TESTBASE='testweb'
+export PRODUCTBASE='productweb'
+
+
+export FLASK_APP=flasky.py
+export FLASK_DEBUG=1

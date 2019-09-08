@@ -1,0 +1,219 @@
+{% import "bootstrap/wtf.html" as wtf %}
+
+<!doctype html>
+<html>
+  <head>
+    {% block head %}
+    <meta charset="utf-8">
+    {% block title %}
+    <title>wait for time</title>
+    {% endblock %}
+    {% block style %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='static.css') }}">
+    {% endblock %}
+    {% block script %}
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
+    {% endblock %}
+    {% block self_script %}
+    <script type="text/javascript">
+      $(document).ready(function() {
+      namespace = '/client_conn';
+      var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+      　　　　　　　//连接后发送日志
+      socket.on('connect', function(){
+      console.log('connected');
+      });
+
+      socket.on('disconnect', function(){
+      console.log('leave');
+      });
+      　　　　　　  //接收后端广播的信息
+      socket.on('message', function(msg) {
+      if (msg.online)
+      {
+      document.getElementsByName(msg.online)[0].style.color = "blue";
+      }
+      else if (msg.offline)
+      {
+      document.getElementsByName(msg.offline)[0].style.color = "gray";
+      }
+      else if (msg.type)
+      {
+      attention = document.getElementById('attention');
+      attention.innerHTML = parseInt(attention.innerHTML, 10)+1;
+      }
+      else if (msg.receiver_id)
+      {
+      sender = document.getElementById(msg.sender);
+      if (sender.className === 'active') {
+      sender.innerHTML = parseInt(sender.innerHTML, 10) + 1;
+      if (sender.innerHTML > 99)
+      {
+      sender.innerHTML = "...";
+      }
+      }
+      else {
+      sender.innerHTML = 1;
+      sender.className = 'active';
+      }
+      msg.state = "unshow";
+      socket.emit('imessage', msg);
+      }
+      else
+      {
+      document.getElementById(msg.room_id).innerHTML = "新消息";
+      document.getElementById(msg.room_id).className="active";
+      msg.receiver_id={{ current_user.id }};
+      msg.state = "unshow";
+      socket.emit('imessage', msg);
+      }
+      });
+      });
+    </script>
+    <script>
+      function onKeyDown() {
+      if (event.keyCode==13) {
+      key = document.getElementById('search-box').value;
+      catalog = document.getElementById('catalog').value;
+      if(key)
+      {document.cookie = "searchkey="+key;
+      window.location.href = "/search?key="+key+"&catalog="+catalog;}
+      }
+      }
+    </script>
+    {% endblock %}
+    {% endblock %}
+  </head>
+  
+  <body>
+    <header>
+      {% block nav %}
+      <nav>
+	<ul class="nav">
+	  <li id="home"><a class="nav-bar" href="{{ url_for('main.index') }}">首页</a></li>
+	  {% if not current_user.is_authenticated %}
+	  <li id="login"><a class="nav-bar" href="{{ url_for('auth.login') }}">登录</a></li>
+	  <li id="register"><a class="nav-bar" href="{{ url_for('auth.register') }}">没有账户？</a></li>
+	  {% else %}
+	  <li><a class="nav-bar" href="{{ url_for('main.show_imageposts') }}">日志</a></li>
+	  <li><a class="nav-bar" href="{{ url_for('main.user', id=current_user.id) }}">你好，{{ current_user.nickname }}！</a></li>
+	  {% if current_user.is_administrator() %}
+	  <li><a id="adminstrator" class="nav-bar" href="{{ url_for('main.administrate') }}">管理员后台</a></li>
+	  {% endif %}
+	  <li id="search">
+	    <input type="text" name="search" id="search-box" onkeydown="onKeyDown()">
+	    <select id="catalog">
+	      <option value="post">博客</option>
+	      <option value="imagepost">图像</option>
+	      <option value="user">用户</option>
+	    </select>
+	  </li>
+	  <li id="logout">
+	    <a href="{{ url_for('auth.logout') }}">退出</a>
+	    <ul>
+	      
+	      <li><a href="{{ url_for('auth.change_password') }}">更改密码</a></li>
+	      <li><a href="{{ url_for('auth.logoff') }}">注销</a></li>
+	    </ul>
+	  </li>
+	  <li id="attentions"><a class="nav-bar" id="attention" href="{{ url_for('main.attentions', id=current_user.id) }}">
+	      {{ current_user.attentions.count() if current_user.attentions.count() != 0 else "0"}}
+	  </a></li>
+	  {% endif %}
+	</ul>
+      </nav>
+      {% endblock %}
+    </header>
+    
+    <div id="tableContainer">
+      <div id="tableRow">
+	<section id="main">
+	  {% block flash %}
+	  <div class='container'>
+	    {% for message in get_flashed_messages() %}
+	    <div class="alert alert-warning">
+	      <button type="button" class="close" data-dismiss="alert">&times;</button>
+	      {{ message }}
+	    </div>
+	    {% endfor %}
+	  </div>
+	  {% endblock %}
+	  
+	  {% block content %}
+	  {% endblock %}
+	</section>
+	<section id="friend-list">
+	  <div id="friend-section" class="scroll-panel">
+	  {% block friends %}
+	  {% if current_user.is_authenticated %}
+	  <table id="friend-list">
+	    <tr><th colspan="2"><a href="{{ url_for('main.manage_friends') }}">好友列表</a></th></tr>
+	    {% for friend in current_user.get_friends() %}
+	    <tr>
+	      <td>
+		<a name="{{ friend.nickname }}" href="{{ url_for('main.user', id=friend.id) }}"
+		     {% if friend.state%}
+		     style="color:blue"
+		     {% else %}
+		     style="color:gray"
+		     {% endif %}
+		     >
+		  {{friend.nickname}}
+		</a>
+	      </td>
+	      <td>
+		<a id="{{ friend.nickname }}" href="{{ url_for('main.webchat', nickname=friend.nickname) }}"
+		   {% if current_user.receive_msgs.filter_by(state ='unshow', sender=friend, room_id=None).count() != 0  %}
+		   class="active">
+		  {{ current_user.receive_msgs.filter_by(state ='unshow', sender=friend).count() }}
+		  {% else %}
+		  >
+		  发送信息
+		  {% endif %}
+		</a>
+	      </td>
+	    </tr>
+	    {% endfor %}
+	    <tr><th colspan="2"><a href="{{ url_for('main.manage_rooms') }}">群聊</a></th></tr>
+	    {% for room in current_user.rooms %}
+	    <tr>
+	      <td><a href="{{ url_for('main.manage_room', id=room.id) }}">{{ room.name }}</a></td>
+	      <td>
+		<a id="{{ room.id }}" href="{{ url_for('main.roomchat', id=room.id) }}"
+		   {% if current_user.receive_msgs.filter_by(room_id=room.id, state="unshow").count() %}
+		   class="active">新消息
+		  {% else%}
+		  >进入
+		  {% endif %}
+		</a>
+	      </td>
+	    </tr>
+	    {% endfor %}
+	    <tr>
+	      <td colspan="2">
+		<a href="{{ url_for('main.create_room') }}">创建新群聊</a>
+	      </td>
+	    </tr>
+	  </table>
+	  {% endif %}
+	  {% endblock %}
+	  </div>
+	</section>
+      </div>
+    </div>
+    
+    {% block footer%}
+    <footer>
+      <script>
+	setInterval(function() {
+	document.getElementById('time').innerHTML = Date().split(' ')[4];
+	},
+	1000);
+      </script>
+      <h5 id="time"></h5>
+    </footer>
+    {% endblock %}
+  </body>
+  
+</html>

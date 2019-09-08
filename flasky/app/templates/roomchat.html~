@@ -1,0 +1,131 @@
+{% extends "./base.html" %}
+
+{% block title %}
+<title>
+  {{ room.name }}
+</title>
+{% endblock %}
+
+{% block self_script %}
+<script>  
+  $(document).ready(function() {
+      namespace = '/client_conn';
+      var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+      　　　　　　　//连接后发送日志
+      socket.on('connect', function(){
+      console.log('connected')
+      });
+      var scroll_log = document.getElementById('log');
+      scroll_log.scrollTop = scroll_log.scrollHeight;
+      　　　　　　　//点击发送时将text框的内容发送到后端
+      $('form.emit').submit(function(event) {
+      socket.emit('imessage', {data: $('.emit_data').val(), sender:$('.emit').attr('id'), room:$('.room-name').attr('id'), state:'sending'});
+      document.getElementById('input-count').innerHTML=0;
+      var dialog = document.getElementById('dialog');
+      sender_data = dialog.insertRow();
+      null_td = sender_data.insertCell();
+      data = sender_data.insertCell();
+      sender = sender_data.insertCell();
+      data.innerHTML = '<span id="host">'+$('.emit_data').val()+'</span>';
+      sender.innerHTML = $('.emit').attr('id');
+      $('.emit_data').val('');
+      document.getElementById('send-button').disabled=true;
+      var scroll_log = document.getElementById('log');
+      scroll_log.scrollTop = scroll_log.scrollHeight;
+      return false;
+      });
+      　　　　　　  //接收后端广播的信息
+      socket.on('message', function(msg) {
+      if (msg.online)
+      {
+      document.getElementsByName(msg.online)[0].style.color = 'blue';
+      }
+      else if (msg.offline)
+      {
+      document.getElementsByName(msg.offline)[0].style.color = 'gray';
+      }
+      else if (msg.receiver_id)
+      {
+      sender = document.getElementById(msg.sender);
+      if (sender.className === 'active') {
+      sender.innerHTML = parseInt(sender.innerHTML, 10) + 1;
+      if (sender.innerHTML > 99)
+      {
+      sender.innerHTML = "...";
+      }
+      }
+      else {
+      sender.innerHTML = 1;
+      sender.className = 'active';
+      }
+      msg.state = "unshow";
+      socket.emit('imessage', msg);
+      }
+      else if (msg.room_id && msg.room_id != $('.room-name').attr('id'))
+      {
+      document.getElementById(msg.room_id).innerHTML = '新消息';
+      document.getElementById(msg.room_id).className="active";
+      msg.receiver_id={{ current_user.id }};
+      msg.state = "unshow";
+      socket.emit('imessage', msg);
+      }
+      else {
+      if (msg.sender !== $('.emit').attr('id'))
+      {
+      var dialog = document.getElementById('dialog');
+      sender_data = dialog.insertRow();
+      sender = sender_data.insertCell();
+      data = sender_data.insertCell();
+      null_td = sender_data.insertCell();
+      sender.innerHTML = msg.sender;
+      data.innerHTML = '<span id="guest">'+msg.data+'</span>';
+      var scroll_log = document.getElementById('log');
+      scroll_log.scrollTop = scroll_log.scrollHeight;
+      }}
+      });
+      });
+</script>
+<script>
+  function onInput() {
+  if ($('.emit_data').val() =="")
+  {document.getElementById('send-button').disabled=true;}
+  else
+  {document.getElementById('send-button').disabled=false;}
+  document.getElementById('input-count').innerHTML = $('.emit_data').val().length;
+  }
+</script>
+{% endblock %}
+
+{% block content %}
+<h3 id="{{ room.id }}" class="room-name">{{ room.name }}</h3>
+<h5 class="room-description">{{ room.description if room.description else " " }}</h5>
+<div id="log" class="scroll-panel">
+  <table id="dialog">
+  {% if toshows %}
+  {% for toshow in toshows %}
+  {% if toshow.sender == current_user.nickname %}
+  <tr>
+    <td></td>
+    <td><span id="host">{{ toshow.data }}</span></td>
+    <td>{{ toshow.sender }}</td>
+  </tr>
+  {% else %}
+  <tr>
+    <td>{{ toshow.sender }}</td>
+    <td><span id="guest">{{ toshow.data }}</span></td>
+    <td></td>
+  </tr>
+  {% endif %}
+  {% endfor %}
+  {% endif %}
+  </table>
+</div>
+<form class="emit" id="{{ current_user.nickname }}" method="post" action='#'>
+  <input type="text" name="emit_data" class="emit_data" oninput="onInput()" style="width:80%" maxlength="200">
+  <input  id="send-button" type="submit" disabled value="发送">
+</form>
+<div id="count">
+  <span id="input-count">0</span><span>/</span><span id="total">200</span>
+</div>
+{% endblock %}
+

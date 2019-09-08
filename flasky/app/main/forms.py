@@ -1,0 +1,54 @@
+from flask import flash
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField, RadioField, PasswordField, TextField, SelectMultipleField
+from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Regexp
+from flask_ckeditor import CKEditorField
+from flask_login import current_user
+
+from app.models import User
+    
+
+class PostForm(FlaskForm):
+    title = StringField(u'标题',validators=[DataRequired(), Length(1, 40)])
+    body = CKEditorField(u'正文', validators=[DataRequired()])
+    submit = SubmitField(u'发表')
+    
+
+class CommentForm(FlaskForm):
+    body = CKEditorField(u'评论', validators=[DataRequired(), Length(1, 200)])
+    submit = SubmitField(u'评论')
+    
+    
+
+class ConfirmForm(FlaskForm):
+    submit_yes = SubmitField(u'确认')
+    submit_no = SubmitField(u'取消')
+
+
+class RequestForm(FlaskForm):
+    message = StringField(u'验证消息', validators=[Length(0, 100)])
+    submit = SubmitField(u'发送')
+    
+
+class SearchForm(FlaskForm):
+    body = StringField(u'输入', validators=[DataRequired()])
+    submit = SubmitField(u'搜索')
+
+
+class RoomForm(FlaskForm):
+    name = StringField(u'群名', validators=[Length(1, 20), DataRequired()])
+    description = StringField(u'描述', validators=[Length(0, 128)])
+    friends = SelectMultipleField(u'好友', choices = [])
+    submit = SubmitField(u'创建')
+
+
+class ManageRoomForm(FlaskForm):
+    name = StringField(u'新群名', validators=[Length(1, 20), DataRequired()])
+    description = StringField(u'新描述', validators=[Length(0, 128)])
+    friends = SelectMultipleField(u'添加好友', choices = [])
+    submit = SubmitField(u'更新')
+
+
+class ViewForm(FlaskForm):
+    view = StringField('', validators=[Length(1, 100), DataRequired()])
+    submit = SubmitField(u'留言')

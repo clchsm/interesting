@@ -1,0 +1,22 @@
+{% extends "./base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block content %}
+<h1 id="post-title">群聊管理</h1>
+<div class="scroll-panel">
+  <table id="room-table">
+    {% for room in current_user.rooms %}
+    <tr>
+      <td>{{ room.name }}</td>
+      <td>{{room.users.count()}}</td>
+      {% if current_user.id == room.creater_id %}
+      <td><a href="{{ url_for('main.quit_room', id=room.id) }}">退出</a></td>
+      <td><a href="{{ url_for('main.delete_room', id=room.id) }}">解散</a></td>
+      {% else %}
+      <td colspan="2"><a href="{{ url_for('main.quit_room', id=room.id) }}">退出</a></td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
