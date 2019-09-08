@@ -1,12 +1,12 @@
 source app/venv/bin/activate
 
-export MAIL_SERVER='smtp.qq.com'
-export MAIL_USERNAME='614566327@qq.com'
-export MAIL_PASSWORD='qrbadlruqsplbffg'
+export MAIL_SERVER='smtp.example.com'
+export MAIL_USERNAME='name@example.com'
+export MAIL_PASSWORD='your_password'
 
-export DBUSERNAME='root'
-export PASSWORD='1991@clc'
-export HOSTNAME='localhost'
+export DBUSERNAME='username'
+export PASSWORD='password'
+export HOSTNAME='your_host'
 export DATABASE='myweb'
 export TESTBASE='testweb'
 export PRODUCTBASE='productweb'
