@@ -36,7 +36,7 @@ class FLASKClientTestCase(unittest.TestCase):
         response = self.client.get('auth/confirm/{}'.format(token), follow_redirects=True)
         user.confirm(token)
         self.assertEqual(response.status_code, 200)
-        self.asssertTrue('您已确认账户' in response.get_data(as_text=True))
+        self.assertTrue('您已确认账户' in response.get_data(as_text=True))
 
         response = self.client.get('auth/logout', follow_redirects=True)
         self.assertEqual(response.status_code, 200)
